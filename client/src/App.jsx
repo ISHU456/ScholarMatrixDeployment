@@ -55,6 +55,9 @@ import Assignments from './pages/general/Assignments';
 import AdminAiManagement from './pages/admin/AdminAiManagement';
 import AdminUserAiDetail from './pages/admin/AdminUserAiDetail';
 
+// Student / Gamified pages
+import QuizArena from './components/student/QuizArena';
+
 // Result pages
 import ResultEntry from './pages/results/ResultEntry';
 import ResultVerification from './pages/results/ResultVerification';
@@ -144,24 +147,36 @@ const AppContent = () => {
   }, [darkMode]);
 
   // Sync department from user profile to localStorage if missing
+  // CORE PROFILE SYNC: Ensures profile photo and details are fresh on every session
   useEffect(() => {
-    const storedDept = localStorage.getItem('selectedDepartment');
-    if (user && user.department && !storedDept) {
-      const fetchAndSyncDept = async () => {
-        try {
-          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://colabmernscholarnodeserver.onrender.com'}/api/departments`);
-          const dept = res.data.find(d => d.code === user.department);
-          if (dept) {
-            localStorage.setItem('selectedDepartment', JSON.stringify(dept));
-            window.dispatchEvent(new CustomEvent('smartlms:department_selected', { detail: dept }));
+    const fetchAndSyncProfile = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://colabmernscholarnodeserver.onrender.com'}/api/auth/profile`, config);
+        
+        if (res.data) {
+          dispatch(updateProfile(res.data));
+          
+          // Sync department if missing in localStorage
+          const storedDept = localStorage.getItem('selectedDepartment');
+          if (!storedDept && res.data.department) {
+            const dRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://colabmernscholarnodeserver.onrender.com'}/api/departments`);
+            const dept = dRes.data.find(d => d.code === res.data.department);
+            if (dept) {
+              localStorage.setItem('selectedDepartment', JSON.stringify(dept));
+              window.dispatchEvent(new CustomEvent('smartlms:department_selected', { detail: dept }));
+            }
           }
-        } catch (err) {
-          console.error('Failed to sync department', err);
         }
-      };
-      fetchAndSyncDept();
+      } catch (err) {
+        console.error('Failed to sync definitive profile', err);
+      }
+    };
+
+    if (user?.token) {
+      fetchAndSyncProfile();
     }
-  }, [user]);
+  }, [user?.token, dispatch]);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 

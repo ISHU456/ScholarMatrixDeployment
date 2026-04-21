@@ -94,7 +94,9 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
     ...(user ? [
       ...(user.role === 'student' ? [
         { name: 'Results', path: '/results/my', icon: <FileText size={18} /> },
-        { name: 'Attendance', path: '/daily-attendance', icon: <ShieldCheck size={18} /> }
+        { name: 'Attendance', path: '/daily-attendance', icon: <ShieldCheck size={18} /> },
+        { name: 'Quiz Arena', path: '/dashboard?tab=quizzes', icon: <Brain size={18} /> },
+        { name: 'Hall of Fame', path: '/achievements', icon: <Award size={18} /> }
       ] : []),
       ...(user.role === 'teacher' ? [{ name: 'Mark Entry', path: '/results/entry', icon: <Edit size={18} /> }] : []),
       ...(user.role === 'admin' || user.role === 'hod' ? [
