@@ -284,7 +284,7 @@ const Community = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/announcements`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/announcements`);
         if (res.data?.length) {
           setAnnouncements(res.data);
         } else {

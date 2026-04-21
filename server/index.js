@@ -62,7 +62,7 @@ const app = express();
 const httpServer = createServer(app);
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://scholarmatrix-ui.onrender.com'
+  'https://scholarmatrixdeployment-ui.onrender.com'
 ];
 
 if (process.env.FRONTEND_URL) {

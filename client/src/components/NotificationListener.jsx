@@ -8,7 +8,7 @@ const NotificationListener = () => {
   useEffect(() => {
     if (!user) return;
 
-    const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com') + '');
+    const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com') + '');
     
     // Join a private room for the user
     socket.emit('join-room', `user_${user._id}`, user._id);
@@ -17,7 +17,7 @@ const NotificationListener = () => {
     socket.on('access-update', (data) => {
       if (data.studentId === user._id) {
         // Dispatch custom event for AchievementToaster
-        const event = new CustomEvent('scholarmatrix:achievement', {
+        const event = new CustomEvent('scholarmatrixdeployment:achievement', {
           detail: {
             title: `Access ${data.state}`,
             subtitle: data.message,
@@ -32,7 +32,7 @@ const NotificationListener = () => {
     // Listen for low attendance alerts
     socket.on('attendance-alert', (data) => {
       if (data.studentId === user._id) {
-        const event = new CustomEvent('scholarmatrix:achievement', {
+        const event = new CustomEvent('scholarmatrixdeployment:achievement', {
           detail: {
             title: 'Low Attendance Alert',
             subtitle: `Your attendance in ${data.courseCode} has dropped below 75%.`,

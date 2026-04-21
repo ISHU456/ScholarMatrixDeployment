@@ -35,7 +35,7 @@ const SelfAttendance = () => {
             const userStr = localStorage.getItem('user');
             const token = userStr ? JSON.parse(userStr).token : null;
 
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/mfa/mark-attendance`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/mfa/mark-attendance`, {
                 courseId,
                 descriptor: mfaState.faceDescriptor,
                 location: mfaState.location

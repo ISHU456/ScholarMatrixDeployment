@@ -32,7 +32,7 @@ const CourseAccessManager = ({ user, initialSemester, initialCourse, onPersistCh
     const fetchCourses = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, config);
         const fetchedCourses = res.data;
         setCourses(fetchedCourses);
         if (fetchedCourses.length > 0) {
@@ -85,7 +85,7 @@ const CourseAccessManager = ({ user, initialSemester, initialCourse, onPersistCh
     setIsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/course-access/course/${selectedCourse._id}`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/course-access/course/${selectedCourse._id}`, config);
       setAccessData(res.data);
     } catch (error) {
       console.error('Error fetching access data:', error);
@@ -103,7 +103,7 @@ const CourseAccessManager = ({ user, initialSemester, initialCourse, onPersistCh
     setSelectedStudent(student);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/course-access/history/${selectedCourse._id}/${student._id}`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/course-access/history/${selectedCourse._id}/${student._id}`, config);
       setHistory(res.data);
       setShowHistoryModal(true);
     } catch (error) {
@@ -120,7 +120,7 @@ const CourseAccessManager = ({ user, initialSemester, initialCourse, onPersistCh
     setIsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/course-access/update`, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/course-access/update`, {
         courseId: selectedCourse._id,
         studentId: overrideModal.studentId,
         state: overrideState,
@@ -230,7 +230,7 @@ const CourseAccessManager = ({ user, initialSemester, initialCourse, onPersistCh
             onClick={async () => {
               try {
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses/${selectedCourse.code}/auto-restrict`, {}, config);
+                const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${selectedCourse.code}/auto-restrict`, {}, config);
                 setSelectedCourse(prev => ({ ...prev, autoRestrictEnabled: res.data.autoRestrictEnabled }));
                 showToast(res.data.message);
               } catch (error) {

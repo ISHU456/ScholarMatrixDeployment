@@ -13,7 +13,7 @@ const InstitutionalAlert = () => {
     if (!user?.token) return;
     const fetchAlerts = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/notifications`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/notifications`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         
@@ -34,7 +34,7 @@ const InstitutionalAlert = () => {
 
   const dismissPopup = async (id) => {
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/notifications/${id}/dismiss-popup`, {}, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/notifications/${id}/dismiss-popup`, {}, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setActivePopup(null);

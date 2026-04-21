@@ -20,7 +20,7 @@ const AdminSystemSettings = ({ user }) => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/admin/settings`, {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/settings`, {
                     headers: { Authorization: `Bearer ${user.token}` }
                 });
                 setSettings(res.data);
@@ -37,7 +37,7 @@ const AdminSystemSettings = ({ user }) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/admin/settings`, settings, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/settings`, settings, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             alert('Institutional parameters updated across all sectors.');

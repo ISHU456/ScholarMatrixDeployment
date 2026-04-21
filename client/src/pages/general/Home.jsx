@@ -40,7 +40,7 @@ const Home = () => {
       name: "Dr. Sarah Johnson",
       role: "Professor of Computer Science",
       institution: "Stanford University",
-      content: "ScholarMatrix has revolutionized how I teach. The AI doubt resolver alone has increased student engagement by 300%. My students are more confident and perform better on assessments.",
+      content: "ScholarMatrixDeployment has revolutionized how I teach. The AI doubt resolver alone has increased student engagement by 300%. My students are more confident and perform better on assessments.",
       rating: 5,
       avatar: "SJ",
       image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop"
@@ -60,7 +60,7 @@ const Home = () => {
       name: "Dr. Emily Rodriguez",
       role: "Head of Digital Learning",
       institution: "Harvard University",
-      content: "We've implemented ScholarMatrix across 50+ courses, and the results are outstanding. The platform is scalable, secure, and the support team is exceptional. A game-changer for higher education.",
+      content: "We've implemented ScholarMatrixDeployment across 50+ courses, and the results are outstanding. The platform is scalable, secure, and the support team is exceptional. A game-changer for higher education.",
       rating: 5,
       avatar: "ER",
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop"
@@ -102,7 +102,7 @@ const Home = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-12 font-medium leading-relaxed">
-              Experience education like never before. ScholarMatrix integrates unparalleled AI capabilities with seamless live collaboration to craft a personalized curriculum tailored uniquely to your academic success.
+              Experience education like never before. ScholarMatrixDeployment integrates unparalleled AI capabilities with seamless live collaboration to craft a personalized curriculum tailored uniquely to your academic success.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto">
@@ -209,7 +209,7 @@ const Home = () => {
               What Our Community Says
             </h2>
             <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 font-medium">
-              Join thousands of satisfied students and educators who have transformed their learning experience with ScholarMatrix
+              Join thousands of satisfied students and educators who have transformed their learning experience with ScholarMatrixDeployment
             </p>
           </div>
 
@@ -274,7 +274,7 @@ const Home = () => {
               Start Your Learning Journey Today
             </h2>
             <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto font-medium">
-              Join thousands of students already accelerating their academic success with ScholarMatrix
+              Join thousands of students already accelerating their academic success with ScholarMatrixDeployment
             </p>
             <Link to="/login" className="inline-flex items-center gap-4 px-12 py-5 rounded-2xl bg-primary-600 text-white font-semibold text-xs uppercase tracking-wide hover:bg-primary-700 transition-all shadow-xl shadow-primary-600/30 group">
               Get Started Free

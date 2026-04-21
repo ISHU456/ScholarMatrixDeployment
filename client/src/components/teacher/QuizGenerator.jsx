@@ -57,7 +57,7 @@ const QuizGenerator = ({ onClose, onSave }) => {
     setIsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/gamification/quizzes`, quizForm, config);
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/gamification/quizzes`, quizForm, config);
       alert("Neural Quiz Node Deployed!");
       if (onSave) onSave();
       if (onClose) onClose();

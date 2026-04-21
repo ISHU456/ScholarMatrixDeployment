@@ -20,7 +20,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/public/settings`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/public/settings`);
         setSettings(data);
       } catch (err) {
         console.error("Failed to load global broadcast settings.");
@@ -37,8 +37,8 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       setSelectedDept(e.detail);
     };
 
-    window.addEventListener('scholarmatrix:department_selected', handleDeptUpdate);
-    return () => window.removeEventListener('scholarmatrix:department_selected', handleDeptUpdate);
+    window.addEventListener('scholarmatrixdeployment:department_selected', handleDeptUpdate);
+    return () => window.removeEventListener('scholarmatrixdeployment:department_selected', handleDeptUpdate);
   }, []);
 
   useEffect(() => {
@@ -53,8 +53,8 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       }
     };
 
-    window.addEventListener('scholarmatrix:gamification_update', handleUpdate);
-    return () => window.removeEventListener('scholarmatrix:gamification_update', handleUpdate);
+    window.addEventListener('scholarmatrixdeployment:gamification_update', handleUpdate);
+    return () => window.removeEventListener('scholarmatrixdeployment:gamification_update', handleUpdate);
   }, [user]);
 
   const handleLogout = () => {
@@ -121,7 +121,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
               <Star size={18} className="fill-white/20" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-400 dark:to-orange-400 uppercase tracking-tight">
-              ScholarMatrix
+              ScholarMatrixDeployment
             </span>
 
           </Link>
@@ -336,7 +336,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                   <div className="bg-amber-500 text-white p-2 rounded-xl">
                     <Star size={18} className="fill-white/20" />
                   </div>
-                  <span className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter">ScholarMatrix</span>
+                  <span className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter">ScholarMatrixDeployment</span>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 hover:text-gray-600">
                   <X size={24} />

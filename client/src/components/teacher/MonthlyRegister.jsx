@@ -32,7 +32,7 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
     const fetchCourses = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, config);
         setCourses(res.data);
         if (res.data.length > 0 && !initialCourse && !initialSemester) {
             const defaultSem = (user.role === 'admin' ? 1 : (user.assignedSemesters?.[0] || 1));
@@ -68,17 +68,17 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
       setIsLoading(true);
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const studentsRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses/${selectedCourse.code}/students?semester=${semester}&section=${section}`, config);
+        const studentsRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${selectedCourse.code}/students?semester=${semester}&section=${section}`, config);
         setStudents(studentsRes.data);
         const year = selectedDate.getFullYear();
         const month = selectedDate.getMonth();
         const startDate = new Date(year, month, 1).toISOString();
         const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
-        const attendanceRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/attendance/course/${selectedCourse._id}?startDate=${startDate}&endDate=${endDate}&semester=${semester}&section=${section}`, config);
+        const attendanceRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/course/${selectedCourse._id}?startDate=${startDate}&endDate=${endDate}&semester=${semester}&section=${section}`, config);
         setAttendanceRecords(attendanceRes.data.attendanceRecords || attendanceRes.data);
         if (studentsRes.data.length > 0) {
             const studentIds = studentsRes.data.map(s => s._id).join(',');
-            const dailyRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/attendance/daily/monthly-bulk?studentIds=${studentIds}&month=${selectedDate.getMonth() + 1}&year=${selectedDate.getFullYear()}`, config);
+            const dailyRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/daily/monthly-bulk?studentIds=${studentIds}&month=${selectedDate.getMonth() + 1}&year=${selectedDate.getFullYear()}`, config);
             setDailyAttendanceRecords(dailyRes.data);
         }
       } catch (error) { console.error('Error fetching register data:', error); }

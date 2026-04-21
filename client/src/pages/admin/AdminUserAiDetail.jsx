@@ -27,7 +27,7 @@ const AdminUserAiDetail = () => {
 
   const fetchAudit = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/chatbot/user-audit/${userId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/chatbot/user-audit/${userId}`, {
         headers: { Authorization: `Bearer ${adminUser.token}` }
       });
       setData(res.data);
@@ -40,7 +40,7 @@ const AdminUserAiDetail = () => {
 
   const handleUpdateCredits = async (amount) => {
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/chatbot/update-credits/${userId}`, { amount }, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/chatbot/update-credits/${userId}`, { amount }, {
         headers: { Authorization: `Bearer ${adminUser.token}` }
       });
       // Update local state with new credits

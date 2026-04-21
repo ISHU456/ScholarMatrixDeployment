@@ -42,10 +42,10 @@ const UploadCenter = () => {
     const fetchData = async () => {
       try {
         const [courseRes, annRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses/${courseId}`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseId}`, {
              headers: { Authorization: `Bearer ${user.token}` }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/announcements?courseId=${courseId}`)
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/announcements?courseId=${courseId}`)
         ]);
         setCourseInfo(courseRes.data);
       setAnnouncements(Array.isArray(annRes.data) ? annRes.data : (annRes.data.announcements || []));
@@ -102,7 +102,7 @@ const UploadCenter = () => {
         formData.append('extraCourseId', courseId);
         formData.append('uploadedBy', user._id);
         
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/resources/upload?courseId=${courseId}`, formData, {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/resources/upload?courseId=${courseId}`, formData, {
           headers: { 
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${user.token}`
@@ -114,7 +114,7 @@ const UploadCenter = () => {
         });
         alert('Asset deployed successfully');
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/resources?courseId=${courseId}`, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/resources?courseId=${courseId}`, {
           title: newTitle, 
           type: newType, 
           fileUrl: newUrl, 

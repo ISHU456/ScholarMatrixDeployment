@@ -11,9 +11,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 import CommentItem from './CommentItem';
 
-const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com') + '');
+const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com') + '');
 
-const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com') + '/api';
+const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com') + '/api';
 
 const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
   const [reactions, setReactions] = useState(announcement.reactionsCount || {

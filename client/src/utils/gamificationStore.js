@@ -1,4 +1,4 @@
-const STORAGE_PREFIX = 'scholarmatrix_gamification_v1_';
+const STORAGE_PREFIX = 'scholarmatrixdeployment_gamification_v1_';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -71,7 +71,7 @@ export const getGamificationState = (studentId) => {
 export const saveGamificationState = (studentId, state) => {
   localStorage.setItem(getStorageKey(studentId), JSON.stringify(state));
   try {
-    window.dispatchEvent(new CustomEvent('scholarmatrix:gamification_update', { detail: state }));
+    window.dispatchEvent(new CustomEvent('scholarmatrixdeployment:gamification_update', { detail: state }));
   } catch (e) {
     // ignore
   }
@@ -91,7 +91,7 @@ export const getLevelFromXp = (xp) => Math.floor((xp || 0) / 100);
 export const emitAchievement = (achievement) => {
   try {
     window.dispatchEvent(
-      new CustomEvent('scholarmatrix:achievement', {
+      new CustomEvent('scholarmatrixdeployment:achievement', {
         detail: achievement,
       })
     );

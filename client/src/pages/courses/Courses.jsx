@@ -61,8 +61,8 @@ const Courses = () => {
       setSelectedDept(e.detail);
     };
 
-    window.addEventListener('scholarmatrix:department_selected', handleDeptUpdate);
-    return () => window.removeEventListener('scholarmatrix:department_selected', handleDeptUpdate);
+    window.addEventListener('scholarmatrixdeployment:department_selected', handleDeptUpdate);
+    return () => window.removeEventListener('scholarmatrixdeployment:department_selected', handleDeptUpdate);
   }, []);
 
   useEffect(() => {
@@ -72,11 +72,11 @@ const Courses = () => {
         setLoading(true);
         const deptId = selectedDept?._id;
         const [coursesRes, deptsRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, {
             params: { departmentId: deptId, semester: activeSem === 'All' ? undefined : activeSem.split('-')[1] },
             headers: { Authorization: `Bearer ${user.token}` }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/departments`)
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/departments`)
         ]);
         setCourses(coursesRes.data);
         setDepartments(deptsRes.data);
@@ -97,7 +97,7 @@ const Courses = () => {
       const counts = {};
       for (const course of courses) {
         try {
-          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/auth/course-activity/${course.code}`);
+          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/course-activity/${course.code}`);
           counts[course.code] = res.data.onlineCount;
         } catch (err) { counts[course.code] = 0; }
       }
@@ -172,12 +172,12 @@ const Courses = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/admin/courses`, formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/courses`, formData, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       alert('New academic module established.');
       setShowModal(false);
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, {
         params: { departmentId: selectedDept?._id, semester: activeSem === 'All' ? undefined : activeSem.split('-')[1] },
         headers: { Authorization: `Bearer ${user.token}` }
       });

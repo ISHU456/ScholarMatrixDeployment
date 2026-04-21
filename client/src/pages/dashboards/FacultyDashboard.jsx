@@ -173,9 +173,9 @@ const FacultyDashboard = () => {
   useEffect(() => {
     if (!user?.token) return;
     const config = { headers: { Authorization: `Bearer ${user.token}` } };
-    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/assignments`, config).then(r => setAssignments(r.data)).catch(() => {});
-    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/announcements`, config).then(r => setAnnouncements(r.data.announcements || r.data)).catch(() => {});
-    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/courses`, config).then(r => {
+    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/assignments`, config).then(r => setAssignments(r.data)).catch(() => {});
+    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/announcements`, config).then(r => setAnnouncements(r.data.announcements || r.data)).catch(() => {});
+    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, config).then(r => {
       setMyCourses(r.data);
       if (lastCourseId) {
         const last = r.data.find(c => c._id === lastCourseId);
@@ -202,7 +202,7 @@ const FacultyDashboard = () => {
       // Find course object for ID
       const targetCourse = myCourses.find(c => c.code === courseCode);
       if (targetCourse) {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/notifications/broadcast-live`, { courseId: targetCourse._id }, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/notifications/broadcast-live`, { courseId: targetCourse._id }, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
       }
@@ -243,7 +243,7 @@ const FacultyDashboard = () => {
   useEffect(() => {
     if (activeTab === 'quizzes') {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/gamification/quizzes`, config).then(r => setQuizzes(r.data)).catch(e => console.error(e));
+      axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/gamification/quizzes`, config).then(r => setQuizzes(r.data)).catch(e => console.error(e));
     }
   }, [activeTab, user]);
 
@@ -410,7 +410,7 @@ const FacultyDashboard = () => {
         {modalOpen && <ScheduleModal form={modalForm} setForm={setModalForm} onSave={handleSave} onClose={() => setModalOpen(false)} isEdit={isEdit} courses={myCourses} />}
         {quizGenOpen && <QuizGenerator onClose={() => setQuizGenOpen(false)} onSave={() => {
           const config = { headers: { Authorization: `Bearer ${user.token}` } };
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/gamification/quizzes`, config).then(r => setQuizzes(r.data));
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/gamification/quizzes`, config).then(r => setQuizzes(r.data));
         }} />}
       </AnimatePresence>
     </div>

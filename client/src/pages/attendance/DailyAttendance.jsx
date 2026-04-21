@@ -26,7 +26,7 @@ const DailyAttendance = () => {
         try {
             const userStr = localStorage.getItem('user');
             const token = userStr ? JSON.parse(userStr).token : null;
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/attendance/daily/status`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/daily/status`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStatus(res.data);
@@ -59,8 +59,8 @@ const DailyAttendance = () => {
             const token = userStr ? JSON.parse(userStr).token : null;
 
             const url = mode === 'entry' 
-                ? `${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/attendance/daily/entry` 
-                : `${import.meta.env.VITE_API_URL || 'https://scholarmatrix-api.onrender.com'}/api/attendance/daily/exit`;
+                ? `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/daily/entry` 
+                : `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/daily/exit`;
 
             const response = await axios.post(url, {
                 descriptor: Array.from(mfaState.faceDescriptor || []),
