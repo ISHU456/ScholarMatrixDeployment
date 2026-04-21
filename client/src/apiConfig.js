@@ -3,7 +3,8 @@
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-    ? window.location.origin.replace('-1.onrender.com', '-api.onrender.com').replace('scholarnode-ui', 'scholarnode-api')
+    ? 'https://colabmernscholarnodeserver.onrender.com' 
     : 'http://localhost:5001');
 
 export default API_URL;
+
