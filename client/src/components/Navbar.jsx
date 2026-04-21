@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, Star, UserCircle, LogOut, Menu, X, LayoutDashboard, GraduationCap, Building2, Megaphone, Home, Flame, Award, Edit, Bot, ArrowLeft, FileText, CheckCircle, TrendingUp, Terminal, ShieldCheck, MapPin } from 'lucide-react';
+import { Sun, Moon, Star, UserCircle, LogOut, Menu, X, LayoutDashboard, GraduationCap, Building2, Megaphone, Home, Flame, Award, Edit, Bot, ArrowLeft, FileText, CheckCircle, TrendingUp, Terminal, ShieldCheck, MapPin, Brain } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
@@ -121,7 +121,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
               <Star size={18} className="fill-white/20" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-400 dark:to-orange-400 uppercase tracking-tight">
-              SmartLMS
+              Scholar Node
             </span>
 
           </Link>
@@ -336,7 +336,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                   <div className="bg-amber-500 text-white p-2 rounded-xl">
                     <Star size={18} className="fill-white/20" />
                   </div>
-                  <span className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter">SmartLMS</span>
+                  <span className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter">Scholar Node</span>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 hover:text-gray-600">
                   <X size={24} />
