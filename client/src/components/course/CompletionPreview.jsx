@@ -27,7 +27,7 @@ const CompletionPreview = ({
   const fetchStudents = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseId}/students`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseId}/students`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setStudents(res.data);
@@ -41,7 +41,7 @@ const CompletionPreview = ({
     if (!isTeacher) return;
     if (!window.confirm("Are you sure you want to remove this student from the course?")) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseId}/students/${studentId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseId}/students/${studentId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       fetchStudents(); // Refresh

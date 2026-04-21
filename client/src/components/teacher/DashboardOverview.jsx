@@ -44,7 +44,7 @@ const DashboardOverview = ({ user }) => {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/leaderboard`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/leaderboard`);
       setGlobalLeaderboard(res.data);
     } catch (err) {
       console.error("Failed to fetch leaderboard in dashboard overview");
@@ -54,7 +54,7 @@ const DashboardOverview = ({ user }) => {
   const fetchStats = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/stats/teacher`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/attendance/stats/teacher`, config);
       setStats(res.data);
       if (res.data.length > 0) {
         fetchActiveCourseStudents(res.data[activeCourseIndex].courseCode);
@@ -70,7 +70,7 @@ const DashboardOverview = ({ user }) => {
     setIsStudentsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseCode}/students`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseCode}/students`, config);
       setActiveCourseStudents(res.data);
     } catch (error) {
       console.error('Error fetching course students:', error);
@@ -98,7 +98,7 @@ const DashboardOverview = ({ user }) => {
     try {
       const course = stats[activeCourseIndex];
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/bulk-mark`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/attendance/bulk-mark`, {
         courseId: course.courseId,
         date: todayStr,
         semester: course.semester || 1, // Defaulting to 1 if not found

@@ -27,7 +27,7 @@ const ResultVerification = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/public/settings`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/public/settings`);
         setDeadline(data.globalAlert);
       } catch (err) { console.error("Failed to load deadline info."); }
     };
@@ -46,7 +46,7 @@ const ResultVerification = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         setCourses(Array.isArray(data) ? data : []);
@@ -69,7 +69,7 @@ const ResultVerification = () => {
     if (!newDeadline) return alert("Select a date-time for the submission deadline.");
     const dateStr = new Date(newDeadline).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/settings`, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/settings`, {
         globalAlert: `Submission Deadline: ${dateStr}`
       }, { headers: { Authorization: `Bearer ${user.token}` } });
       setDeadline(`Submission Deadline: ${dateStr}`);
@@ -90,7 +90,7 @@ const ResultVerification = () => {
   const handleReject = async () => {
     if (!rejectionReason.trim()) return alert('Reason required.');
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/results/reject`, { courseId, semester, academicYear, reason: rejectionReason }, { headers: { Authorization: `Bearer ${user.token}` } });
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/results/reject`, { courseId, semester, academicYear, reason: rejectionReason }, { headers: { Authorization: `Bearer ${user.token}` } });
       setShowRejectModal(false); setRejectionReason('');
       dispatch(getStudentsForEntry({ courseId, semester, academicYear }));
     } catch (err) { alert('Failed to reject marks.'); }

@@ -36,7 +36,7 @@ const AttendanceManager = ({ user, initialSemester, initialCourse, onPersistChan
     const fetchCourses = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses`, config);
         const fetchedCourses = res.data;
         setCourses(fetchedCourses);
         
@@ -106,8 +106,8 @@ const AttendanceManager = ({ user, initialSemester, initialCourse, onPersistChan
         try {
           const config = { headers: { Authorization: `Bearer ${user.token}` } };
           const fetchSem = courseToUse?.semester || semester;
-          const studentsRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseToUse.code}/students?semester=${fetchSem}&section=${section}`, config);
-          const attendanceRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/course/${courseToUse._id}?startDate=${attendanceDate}&endDate=${attendanceDate}&semester=${fetchSem}&section=${section}`, config);
+          const studentsRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseToUse.code}/students?semester=${fetchSem}&section=${section}`, config);
+          const attendanceRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/attendance/course/${courseToUse._id}?startDate=${attendanceDate}&endDate=${attendanceDate}&semester=${fetchSem}&section=${section}`, config);
           
           const { attendanceRecords, dailyRecords } = attendanceRes.data;
           setStudents(studentsRes.data);
@@ -158,7 +158,7 @@ const AttendanceManager = ({ user, initialSemester, initialCourse, onPersistChan
     setIsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/course/${selectedCourse._id}`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/attendance/course/${selectedCourse._id}`, config);
       setHistory(res.data.attendanceRecords || res.data);
     } catch (error) {
       console.error('Error fetching history:', error);
@@ -181,7 +181,7 @@ const AttendanceManager = ({ user, initialSemester, initialCourse, onPersistChan
     setSavingStudentId(studentId);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/bulk-mark`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/attendance/bulk-mark`, {
         courseId: selectedCourse._id,
         date: attendanceDate,
         semester: semester,
@@ -226,7 +226,7 @@ const AttendanceManager = ({ user, initialSemester, initialCourse, onPersistChan
       }
 
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/attendance/bulk-mark`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/attendance/bulk-mark`, {
         courseId: selectedCourse._id,
         date: attendanceDate,
         semester: semester,

@@ -31,7 +31,7 @@ const AdminResultHub = ({ user }) => {
 
   const fetchDepartments = async () => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/departments`);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/departments`);
       setDepartments(data);
     } catch (err) {
       console.error("Failed to fetch departments", err);
@@ -41,7 +41,7 @@ const AdminResultHub = ({ user }) => {
   const fetchSummary = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/results/semester-summary?semester=${semester}&academicYear=${academicYear}&department=${department}&section=${section}`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/results/semester-summary?semester=${semester}&academicYear=${academicYear}&department=${department}&section=${section}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setData(data);
@@ -68,7 +68,7 @@ const AdminResultHub = ({ user }) => {
     if (!window.confirm(`Force unlock all identity records for ${courseName}? This override permits faculty to modify results after standard locking.`)) return;
     try {
       setLoading(true);
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/results/unlock`, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/results/unlock`, {
         courseId, semester, academicYear
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -86,7 +86,7 @@ const AdminResultHub = ({ user }) => {
     if (!window.confirm(`Compile and generate final results for ${data.students.length} students? This will calculate SGPA/CGPA.`)) return;
     try {
       setCompiling(true);
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/results/generate-final`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/results/generate-final`, {
         semester, academicYear, department
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -104,7 +104,7 @@ const AdminResultHub = ({ user }) => {
     if (!window.confirm(`Certify all identity records for ${courseName}? This action officially archives marks for transcript generation.`)) return;
     try {
       setLoading(true);
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/results/approve`, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/results/approve`, {
         courseId, semester, academicYear
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -123,7 +123,7 @@ const AdminResultHub = ({ user }) => {
     if (!reason) return;
     try {
       setLoading(true);
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/results/reject`, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/results/reject`, {
         courseId, semester, academicYear, reason
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -141,7 +141,7 @@ const AdminResultHub = ({ user }) => {
     const deadline = window.prompt("Enter marks submission deadline (e.g., '15th July 2025'):");
     if (!deadline) return;
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/settings`, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/settings`, {
         globalAlert: `PROTOCOL ALERT: Final deadline for Result Transmission is ${deadline}. Ensure all modules are submitted for certification.`
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -292,7 +292,7 @@ const AdminResultHub = ({ user }) => {
       formData.append('semester', semester);
       formData.append('academicYear', academicYear);
 
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/results/upload-transcript`, formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/results/upload-transcript`, formData, {
         headers: { 
           Authorization: `Bearer ${user.token}`,
           'Content-Type': 'multipart/form-data'
@@ -327,7 +327,7 @@ const AdminResultHub = ({ user }) => {
     if (!window.confirm(`BROADCAST PROTOCOL: Publish all compiled results for ${department} Sem ${semester}? Students will gain immediate visibility of their academic standing.`)) return;
     try {
       setPublishing(true);
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/results/publish-final`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/results/publish-final`, {
         semester, academicYear, department
       }, {
         headers: { Authorization: `Bearer ${user.token}` }

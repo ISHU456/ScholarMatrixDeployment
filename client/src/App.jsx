@@ -154,7 +154,7 @@ const AppContent = () => {
     const fetchAndSyncProfile = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/profile`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/profile`, config);
         
         if (res.data) {
           dispatch(updateProfile(res.data));
@@ -162,7 +162,7 @@ const AppContent = () => {
           // Sync department if missing in localStorage
           const storedDept = localStorage.getItem('selectedDepartment');
           if (!storedDept && res.data.department) {
-            const dRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/departments`);
+            const dRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/departments`);
             const dept = dRes.data.find(d => d.code === res.data.department);
             if (dept) {
               localStorage.setItem('selectedDepartment', JSON.stringify(dept));

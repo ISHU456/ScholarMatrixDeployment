@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
-const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com') + '/api';
+const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com') + '/api';
 
 const CreatePost = ({ user, onPostCreated }) => {
   const [type, setType] = useState('text'); // text, image, video, file, link

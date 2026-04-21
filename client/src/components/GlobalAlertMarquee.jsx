@@ -13,7 +13,7 @@ const GlobalAlertMarquee = () => {
     useEffect(() => {
         const fetchAlert = async () => {
             try {
-                const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/public/settings`);
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/public/settings`);
                 if (data && data.globalAlert) {
                     setAlert(data.globalAlert);
                     // Check if this specific alert message has been dismissed in this session

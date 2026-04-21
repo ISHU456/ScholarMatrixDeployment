@@ -20,7 +20,7 @@ const DepartmentSelection = () => {
   useEffect(() => {
     const fetchDepts = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/departments`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/departments`);
         setDepartments(res.data);
       } catch (err) {
         console.error('Failed to fetch departments', err);
@@ -39,7 +39,7 @@ const DepartmentSelection = () => {
       const config = {
         headers: { Authorization: `Bearer ${user.token}` }
       };
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/profile`, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/profile`, {
         department: dept.code
       }, config);
 

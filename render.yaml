@@ -1,7 +1,7 @@
 services:
   # 1. Backend Web Service
   - type: web
-    name: scholarmatrixdeployment-api
+    name: scholarmatrixdeploymentserver
     runtime: node
     plan: free # Change to 'starter' for production
     rootDir: server
@@ -15,7 +15,7 @@ services:
       - key: JWT_SECRET
         generateValue: true # Generates a random secret for security
       - key: FRONTEND_URL
-        sync: false # Provide your frontend URL (e.g., https://scholarmatrixdeployment-ui.onrender.com)
+        sync: false # Provide your frontend URL (e.g., https://scholarmatrixdeployment-client.onrender.com)
       - key: GROQ_API_KEY
         sync: false
       - key: CLOUD_NAME
@@ -27,7 +27,7 @@ services:
 
   # 2. Frontend Static Site
   - type: static
-    name: scholarmatrixdeployment-ui
+    name: scholarmatrixdeployment-client
     runtime: static
     rootDir: client
     buildCommand: npm install && npm run build
@@ -36,7 +36,7 @@ services:
       - key: VITE_API_URL
         fromService:
           type: web
-          name: scholarmatrixdeployment-api
+          name: scholarmatrixdeploymentserver
           property: host
     routes:
       - type: rewrite

@@ -148,7 +148,7 @@ const CourseDetail = () => {
 
   const updateScheduleInDB = async (payload) => {
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseId}/schedule`, payload, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseId}/schedule`, payload, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setTimetable(res.data.schedule);
@@ -174,7 +174,7 @@ const CourseDetail = () => {
 
     try {
       const code = courseId.toUpperCase();
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${code}/schedule/image`, formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${code}/schedule/image`, formData, {
         headers: { 
           Authorization: `Bearer ${user.token}`,
           'Content-Type': 'multipart/form-data'
@@ -194,7 +194,7 @@ const CourseDetail = () => {
     if (!window.confirm('Are you sure you want to delete the Master Timetable photo?')) return;
     try {
       const code = courseId.toUpperCase();
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${code}/schedule`, { 
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${code}/schedule`, { 
         timetableImageUrl: '' 
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -238,7 +238,7 @@ const CourseDetail = () => {
   const fetchProgress = async () => {
     if (!user?._id || !courseId) return;
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/progress/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/progress/${courseId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setDbProgress(res.data);
@@ -259,7 +259,7 @@ const CourseDetail = () => {
   const handleStartLive = async (cId) => {
     if (isUserTeacher) {
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/notifications/broadcast-live`, { courseId: cId }, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/notifications/broadcast-live`, { courseId: cId }, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
       } catch (err) {
@@ -293,7 +293,7 @@ const CourseDetail = () => {
     setTimeout(() => setShowProgressToast(false), 3000);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/progress/update`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/progress/update`, {
         courseId,
         itemId,
         itemType
@@ -316,7 +316,7 @@ const CourseDetail = () => {
 
   const fetchCourseData = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseId}`, {
          headers: { Authorization: `Bearer ${user.token}` }
       });
       setCourseInfo(res.data);
@@ -335,7 +335,7 @@ const CourseDetail = () => {
   useEffect(() => {
     if (courseId && user?.token && hasIncrementedView.current !== courseId) {
        hasIncrementedView.current = courseId;
-       axios.patch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses/${courseId}/view`, {}, {
+       axios.patch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses/${courseId}/view`, {}, {
          headers: { Authorization: `Bearer ${user.token}` }
        }).catch(err => console.error('Failed to increment views', err));
     }
@@ -410,7 +410,7 @@ const CourseDetail = () => {
   const fetchResources = async () => {
     try { 
       setIsLoading(true); 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/resources?courseId=${courseId}`); 
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/resources?courseId=${courseId}`); 
       setResources(res.data); 
     } catch (err) { 
       console.error(err); 
@@ -421,7 +421,7 @@ const CourseDetail = () => {
   
   const fetchAssignments = async () => { 
     try { 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/assignments/course/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/assignments/course/${courseId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       }); 
       setAssignments(res.data); 
@@ -433,7 +433,7 @@ const CourseDetail = () => {
 
   const fetchStudentSubmissions = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/assignments/my-submissions/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/assignments/my-submissions/${courseId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setStudentSubmissions(res.data);
@@ -444,7 +444,7 @@ const CourseDetail = () => {
   
   const fetchAnnouncements = async () => { 
     try { 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/announcements`); 
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/announcements`); 
       const data = Array.isArray(res.data) ? res.data : (res.data.announcements || []);
       setAnnouncements(data.slice(0, 3)); 
     } catch (err) { 
@@ -454,7 +454,7 @@ const CourseDetail = () => {
 
   const fetchOnlineCount = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/course-activity/${courseId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/course-activity/${courseId}`);
       setOnlineStudents(res.data.onlineCount || 0);
     } catch (err) { 
       console.error(err); 
@@ -463,7 +463,7 @@ const CourseDetail = () => {
 
   const sendPulse = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/pulse`, { courseId }, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/pulse`, { courseId }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
     } catch (err) { 
@@ -585,10 +585,10 @@ const CourseDetail = () => {
       if (user?.token) config.headers = { Authorization: `Bearer ${user.token}` };
       
       if (activeSection === 'assignments') {
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/assignments/${item._id}?courseId=${courseId}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/assignments/${item._id}?courseId=${courseId}`, config);
         setAssignments(assignments.filter(a => a._id !== item._id));
       } else {
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/resources/${item._id}?courseId=${courseId}`, config); 
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/resources/${item._id}?courseId=${courseId}`, config); 
         setResources(resources.filter(r => r._id !== item._id)); 
       }
       
@@ -627,7 +627,7 @@ const CourseDetail = () => {
     let originalType = res.type;
   
     if (res.fileData) {
-      url = `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/resources/file/${res._id}`;
+      url = `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/resources/file/${res._id}`;
     }
   
     let resolvedPreviewType = originalType;

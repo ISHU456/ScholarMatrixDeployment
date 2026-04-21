@@ -23,7 +23,7 @@ const ResultsAnalytics = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/courses`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/courses`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         setCourses(Array.isArray(data) ? data : []);

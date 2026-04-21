@@ -29,10 +29,10 @@ const AdminTeacherProfileModal = ({ teacherId, user, onClose }) => {
         const fetchData = async () => {
             try {
                 const [dRes, cRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/teachers/${teacherId}`, {
+                    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/teachers/${teacherId}`, {
                         headers: { Authorization: `Bearer ${user.token}` }
                     }),
-                    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/courses`, {
+                    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/courses`, {
                         headers: { Authorization: `Bearer ${user.token}` }
                     })
                 ]);
@@ -63,7 +63,7 @@ const AdminTeacherProfileModal = ({ teacherId, user, onClose }) => {
         setIsSaving(true);
         try {
             // First update assignments and department
-            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/teachers/${teacherId}/assignments`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/teachers/${teacherId}/assignments`, {
                 assignedCourseIds: selectedCourses,
                 department: department,
                 assignedSemesters: assignedSemesters,
@@ -79,7 +79,7 @@ const AdminTeacherProfileModal = ({ teacherId, user, onClose }) => {
 
             // Then update role if changed
             if (role !== details.role) {
-                await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/admin/users/${teacherId}/role`, { role }, {
+                await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/admin/users/${teacherId}/role`, { role }, {
                     headers: { Authorization: `Bearer ${user.token}` }
                 });
             }

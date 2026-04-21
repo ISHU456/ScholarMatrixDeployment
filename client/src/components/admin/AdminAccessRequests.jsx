@@ -9,7 +9,7 @@ const AdminAccessRequests = ({ user }) => {
 
   const fetchRequests = async () => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/access-requests/pending`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/access-requests/pending`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setRequests(data);
@@ -26,7 +26,7 @@ const AdminAccessRequests = ({ user }) => {
 
   const handleResolve = async (id, status) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/access-requests/resolve/${id}`, { status }, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/access-requests/resolve/${id}`, { status }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setRequests(prev => prev.filter(r => r._id !== id));

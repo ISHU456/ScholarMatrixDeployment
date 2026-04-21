@@ -25,7 +25,7 @@ const WaitingAuthorization = () => {
     const handleRefreshStatus = async () => {
         try {
             setIsRefreshing(true);
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/profile`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/profile`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             // Update credentials in redux

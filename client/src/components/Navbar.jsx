@@ -20,7 +20,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/public/settings`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/public/settings`);
         setSettings(data);
       } catch (err) {
         console.error("Failed to load global broadcast settings.");

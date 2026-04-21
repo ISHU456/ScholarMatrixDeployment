@@ -77,13 +77,13 @@ const FaceRegistration = () => {
         
         setSubmitting(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/mfa/register-face`, 
+            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/mfa/register-face`, 
                 { descriptors: finalDescriptors },
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
             
             // Re-fetch user profile to sync all data (including faceRegistered)
-            const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-api.onrender.com'}/api/auth/profile`, {
+            const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeploymentserver.onrender.com'}/api/auth/profile`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             
