@@ -60,7 +60,7 @@ connectDB().then(async () => {
 
 const app = express();
 const httpServer = createServer(app);
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const frontendUrl = process.env.FRONTEND_URL || 'https://colabmernscholarnode-1.onrender.com';
 
 const io = new Server(httpServer, {
   cors: {
