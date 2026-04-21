@@ -26,6 +26,7 @@ const LiveClass = () => {
   const [handRaised, setHandRaised] = useState(false);
   const [handsRaisedList, setHandsRaisedList] = useState([]);
   const [viewerCount, setViewerCount] = useState(0);
+  const [members, setMembers] = useState([]); // List of { name, role, _id }
   const [activeTab, setActiveTab] = useState('chat'); // chat | members
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   
@@ -50,13 +51,18 @@ const LiveClass = () => {
 
     socket.on('connect', () => {
       setIsLoading(false);
-      socket.emit('join-room', classId, user?._id);
+      socket.emit('join-room', classId, { _id: user?._id, name: user?.name, role: user?.role });
       
       if (isTeacher) {
         startBroadcasting();
       } else {
         socket.emit('join-broadcast', classId);
       }
+    });
+
+    socket.on('update-members', (memberList) => {
+      setMembers(memberList);
+      setViewerCount(memberList.length);
     });
 
     // Chat Logic
@@ -485,14 +491,35 @@ const LiveClass = () => {
                 </form>
               </>
             ) : (
-              <div className="flex-1 p-6 flex flex-col items-center justify-center text-center opacity-40">
-                 <Users size={48} className="mb-4 text-gray-600" />
-                 <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Live Member Tracking<br/>Engaged</p>
-                 <div className="mt-8 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                    <span className="text-[10px] font-bold text-emerald-500 uppercase">{viewerCount} Active Terminals</span>
-                 </div>
-              </div>
-            )}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 no-scrollbar">
+             <div className="flex items-center justify-between mb-4 px-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Live Registry</p>
+                <div className="px-2 py-1 bg-emerald-500/10 rounded-lg text-[9px] font-bold text-emerald-500">{members.length} ONLINE</div>
+             </div>
+             
+             {members.map((member, i) => (
+               <motion.div 
+                 initial={{ opacity: 0, x: 10 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 key={member.socketId || i} 
+                 className="flex items-center justify-between p-4 bg-gray-900/30 border border-gray-800 rounded-2xl group hover:border-primary-500/30 transition-all"
+               >
+                  <div className="flex items-center gap-3">
+                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-xs ${member.role === 'teacher' ? 'bg-rose-600 shadow-[0_0_15px_rgba(225,29,72,0.3)]' : 'bg-primary-600'}`}>
+                        {member.name?.substring(0, 2).toUpperCase()}
+                     </div>
+                     <div>
+                        <p className="text-xs font-bold uppercase tracking-tight text-gray-200 group-hover:text-white transition-colors">{member.name}</p>
+                        <p className={`text-[9px] font-bold uppercase ${member.role === 'teacher' ? 'text-rose-500' : 'text-primary-400'}`}>
+                           {member.role === 'teacher' ? 'Faculty Lead' : 'Scholastic Terminal'}
+                        </p>
+                     </div>
+                  </div>
+                  {member.role === 'teacher' && <Radio size={14} className="text-rose-500 animate-pulse" />}
+               </motion.div>
+             ))}
+          </div>
+        )}
           </motion.div>
         )}
       </AnimatePresence>

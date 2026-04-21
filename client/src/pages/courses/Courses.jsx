@@ -288,14 +288,14 @@ const Courses = () => {
          </div>
       </header>
       
-      <div className="lg:hidden sticky top-[72px] z-[45] flex overflow-x-auto py-4 px-4 bg-white dark:bg-[#060811] border-b border-gray-100 dark:border-gray-800 gap-3 shadow-md">
+      <div className="lg:hidden flex overflow-x-auto py-5 px-4 bg-white dark:bg-[#060811] border-b border-gray-100 dark:border-gray-800 gap-4 no-scrollbar">
         {semesters.map((sem) => (
           <button 
             key={sem.id} 
             onClick={() => setActiveSem(sem.id)} 
-            className={`flex items-center gap-2.5 whitespace-nowrap px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wide transition-all ${activeSem === sem.id ? sem.active : 'bg-gray-100/50 dark:bg-gray-800/50 text-gray-500 shadow-inner'}`}
+            className={`flex items-center gap-3 whitespace-nowrap px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm ${activeSem === sem.id ? sem.active : 'bg-gray-50/50 dark:bg-gray-800/30 text-gray-500 border border-transparent'}`}
           >
-            <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${activeSem === sem.id ? 'bg-white/20' : sem.color}`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${activeSem === sem.id ? 'bg-white/20' : sem.color}`}>
               {isSemLocked(sem.id) ? <Lock size={14} /> : <sem.icon size={14} />}
             </div>
             {sem.label.replace('Semester ', 'SEM ')}

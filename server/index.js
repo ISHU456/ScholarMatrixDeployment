@@ -126,12 +126,31 @@ app.get('/api/public/settings', async (req, res) => {
 io.on('connection', (socket) => {
   // console.log('New client connected', socket.id);
   
-  socket.on('join-room', (roomId, userId) => {
+  socket.on('join-room', (roomId, userData) => {
     socket.join(roomId);
-    socket.to(roomId).emit('user-connected', userId);
+    
+    // Initialize room if not exists
+    if (!roomMembers[roomId]) roomMembers[roomId] = [];
+    
+    // Add user if not already present (based on socket ID)
+    const exists = roomMembers[roomId].find(m => m.socketId === socket.id);
+    if (!exists) {
+      roomMembers[roomId].push({
+        socketId: socket.id,
+        ...userData // contains _id, name, role
+      });
+    }
+
+    // Broadcast updated member list to everyone in the room
+    io.to(roomId).emit('update-members', roomMembers[roomId]);
+    socket.to(roomId).emit('user-connected', userData?._id);
 
     socket.on('disconnect', () => {
-      socket.to(roomId).emit('user-disconnected', userId);
+      if (roomMembers[roomId]) {
+        roomMembers[roomId] = roomMembers[roomId].filter(m => m.socketId !== socket.id);
+        io.to(roomId).emit('update-members', roomMembers[roomId]);
+      }
+      socket.to(roomId).emit('user-disconnected', userData?._id);
     });
   });
 
