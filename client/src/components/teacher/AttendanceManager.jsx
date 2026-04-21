@@ -1,0 +1,564 @@
+import { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { 
+  Calendar, Check, X, Search, Filter, 
+  ChevronLeft, ChevronRight, Save, Clock,
+  AlertCircle, CheckCircle2, UserCheck, UserMinus, ShieldCheck,
+  ArrowRight, MoreHorizontal, CalendarDays, Users, RefreshCw, Shield, Activity, Target
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import AdminStudentProfileModal from '../admin/AdminStudentProfileModal';
+
+const AttendanceManager = ({ user, initialSemester, initialCourse, onPersistChange }) => {
+  const [attendanceDate, setAttendanceDate] = useState('2026-03-31T13:00'); // Set to specific user request 01:00 PM
+  const [semester, setSemester] = useState(() => Number(localStorage.getItem('att_sem')) || initialSemester || 1);
+  const [section, setSection] = useState(() => localStorage.getItem('att_sec') || 'A');
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(initialCourse);
+  const [students, setStudents] = useState([]);
+  const [attendanceEntries, setAttendanceEntries] = useState({}); // { studentId: status }
+  const [biometricStatus, setBiometricStatus] = useState({}); // { studentId: boolean }
+  const [remarks, setRemarks] = useState({}); // { studentId: remark }
+  const [isLoading, setIsLoading] = useState(false);
+  const [savingStudentId, setSavingStudentId] = useState(null); 
+  const [toast, setToast] = useState(null);
+  const [viewMode, setViewMode] = useState('mark'); // 'mark' | 'view'
+  const [history, setHistory] = useState([]);
+  const [dailyFaceData, setDailyFaceData] = useState({}); // { studentId: fullRecord }
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subjectSearch, setSubjectSearch] = useState('');
+  const [viewingStudentId, setViewingStudentId] = useState(null); // For profile modal
+  const [currentMarkPage, setCurrentMarkPage] = useState(1);
+  const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
+  const [itemsPerPage] = useState(25);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const res = await axios.get(`http://localhost:5001/api/courses`, config);
+        const fetchedCourses = res.data;
+        setCourses(fetchedCourses);
+        
+        // Persistence Recovery Logic
+        const storedCourseId = localStorage.getItem('att_courseId');
+        if (storedCourseId) {
+          const match = fetchedCourses.find(c => c._id === storedCourseId);
+          if (match) {
+            setSelectedCourse(match);
+            return;
+          }
+        }
+
+        if (fetchedCourses.length > 0) {
+          if (!initialCourse && !initialSemester) {
+            const defaultSem = (user.role === 'admin' ? 1 : (user.assignedSemesters?.[0] || 1));
+            const hasDefaultSem = fetchedCourses.some(c => c.semester === defaultSem);
+            if (hasDefaultSem) {
+               const defaultCourse = fetchedCourses.find(c => c.semester === defaultSem);
+               setSelectedCourse(defaultCourse);
+               setSemester(defaultSem);
+               onPersistChange(defaultSem, defaultCourse);
+            } else {
+               const firstAvailable = [...fetchedCourses].sort((a,b) => a.semester - b.semester)[0];
+               setSemester(firstAvailable.semester);
+               setSelectedCourse(firstAvailable);
+               onPersistChange(firstAvailable.semester, firstAvailable);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+    };
+    if (user?.token) fetchCourses();
+  }, [user.token, initialCourse, initialSemester]);
+
+  // Auto-select course when semester changes
+  useEffect(() => {
+    if (courses.length > 0) {
+      const filtered = courses.filter(c => c.semester === semester);
+      if (filtered.length > 0) {
+        // Only reset if current selectedCourse is not in the new semester
+        if (!selectedCourse || selectedCourse.semester !== semester) {
+          setSelectedCourse(filtered[0]);
+          onPersistChange?.(semester, filtered[0]);
+        }
+      } else if (selectedCourse && selectedCourse.semester !== semester) {
+        setSelectedCourse(null);
+      }
+    }
+  }, [semester, courses]);
+
+  // Sync to LocalStorage for Persistence
+  useEffect(() => {
+    localStorage.setItem('att_sem', semester);
+    localStorage.setItem('att_sec', section);
+    if (selectedCourse) localStorage.setItem('att_courseId', selectedCourse._id);
+  }, [semester, section, selectedCourse]);
+
+  useEffect(() => {
+    const courseToUse = selectedCourse;
+    if (courseToUse && viewMode === 'mark') {
+      const fetchStudents = async () => {
+        setIsLoading(true);
+        setStudents([]); 
+        try {
+          const config = { headers: { Authorization: `Bearer ${user.token}` } };
+          const fetchSem = courseToUse?.semester || semester;
+          const studentsRes = await axios.get(`http://localhost:5001/api/courses/${courseToUse.code}/students?semester=${fetchSem}&section=${section}`, config);
+          const attendanceRes = await axios.get(`http://localhost:5001/api/attendance/course/${courseToUse._id}?startDate=${attendanceDate}&endDate=${attendanceDate}&semester=${fetchSem}&section=${section}`, config);
+          
+          const { attendanceRecords, dailyRecords } = attendanceRes.data;
+          setStudents(studentsRes.data);
+          
+          const existing = {};
+          const biometric = {};
+          const dailyStatus = {}; 
+
+          if (Array.isArray(attendanceRecords)) {
+            attendanceRecords.forEach(rec => {
+              const sid = rec.student?._id || rec.student;
+              // Only include if student is in the current fetch list
+              if (studentsRes.data.some(s => s._id === sid)) {
+                existing[sid] = rec.status;
+                biometric[sid] = rec.isBiometricVerified;
+              }
+            });
+          }
+
+          if (Array.isArray(dailyRecords)) {
+            dailyRecords.forEach(rec => {
+              dailyStatus[rec.student] = rec;
+            });
+          }
+
+          const entries = {};
+          studentsRes.data.forEach(s => { 
+            entries[s._id] = existing[s._id] || (dailyStatus[s._id]?.status === 'present' ? 'present' : null); 
+          });
+          setAttendanceEntries(entries);
+          setBiometricStatus(biometric);
+          setDailyFaceData(dailyStatus);
+        } catch (error) {
+          console.error('Error fetching students/attendance:', error);
+          setStudents([]);
+          setAttendanceEntries({});
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchStudents();
+    } else if (selectedCourse && viewMode === 'view') {
+      fetchHistory();
+    }
+  }, [selectedCourse, viewMode, user.token, attendanceDate, semester, section]);
+
+  const fetchHistory = async () => {
+    setIsLoading(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const res = await axios.get(`http://localhost:5001/api/attendance/course/${selectedCourse._id}`, config);
+      setHistory(res.data.attendanceRecords || res.data);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleStatusChange = async (studentId, status) => {
+    // Immediate UI feedback
+    setAttendanceEntries(prev => ({ ...prev, [studentId]: status }));
+    
+    if (!selectedCourse || !attendanceDate) return;
+
+    setSavingStudentId(studentId);
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post('http://localhost:5001/api/attendance/bulk-mark', {
+        courseId: selectedCourse._id,
+        date: attendanceDate,
+        semester: semester,
+        attendanceData: [{
+          studentId,
+          status,
+          remarks: remarks[studentId] || 'Auto-saved by Governance Grid'
+        }]
+      }, config);
+      
+      // Optional: No toast for every single save to keep it clean, or a subtle one
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      showToast('Synchronization Failed', 'error');
+      // Revert UI on failure? 
+    } finally {
+      setSavingStudentId(null);
+    }
+  };
+
+  const handleBulkMark = (status) => {
+    const next = { ...attendanceEntries };
+    students.forEach(s => { next[s._id] = status; });
+    setAttendanceEntries(next);
+  };
+
+  const handleSaveAttendance = async () => {
+    setIsLoading(true);
+    try {
+      const attendanceData = Object.keys(attendanceEntries)
+        .filter(studentId => attendanceEntries[studentId] !== null)
+        .map(studentId => ({
+          studentId,
+          status: attendanceEntries[studentId],
+          remarks: remarks[studentId] || ''
+        }));
+
+      if (attendanceData.length === 0) {
+        showToast('No changes to save', 'info');
+        setIsLoading(false);
+        return;
+      }
+
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post('http://localhost:5001/api/attendance/bulk-mark', {
+        courseId: selectedCourse._id,
+        date: attendanceDate,
+        semester: semester,
+        attendanceData
+      }, config);
+
+      showToast('Attendance recorded successfully!');
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+      showToast(error.response?.data?.message || 'Error saving attendance', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sortedStudents = useMemo(() => {
+    return [...students].sort((a, b) => a.name.localeCompare(b.name));
+  }, [students]);
+
+  const isAuthorized = useMemo(() => {
+    if (user.role === 'admin') return true;
+    if (!selectedCourse) return false;
+    const isExplicitlyAssigned = selectedCourse.facultyAssigned?.some(f => 
+      (typeof f === 'string' ? f : f._id) === user._id
+    );
+    if (isExplicitlyAssigned) return true;
+    const isSemAssigned = user.assignedSemesters?.includes(selectedCourse.semester);
+    const isDeptMatch = user.department === selectedCourse.department?.name || user.department === selectedCourse.department?.code;
+    return isSemAssigned && isDeptMatch;
+  }, [user, selectedCourse]);
+
+  const filteredStudents = sortedStudents.filter(s => 
+    s.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    s.rollNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentMarkPage - 1) * itemsPerPage;
+    return filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredStudents, currentMarkPage, itemsPerPage]);
+
+  const sidebarFilteredCourses = useMemo(() => {
+    return courses.filter(c => 
+      (c.semester === semester) &&
+      (c.name?.toLowerCase().includes(subjectSearch.toLowerCase()) || 
+       c.code?.toLowerCase().includes(subjectSearch.toLowerCase()))
+    ).sort((a,b) => a.name.localeCompare(b.name));
+  }, [courses, subjectSearch, semester]);
+
+  return (
+    <div className="space-y-6">
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-20 right-8 z-[60] px-6 py-3 rounded-2xl shadow-2xl text-white font-semibold uppercase tracking-wide text-xs flex items-center gap-3 ${toast.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+            {toast.type === 'success' ? <CheckCircle2 size={16}/> : <AlertCircle size={16}/>}
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-col xl:flex-row items-center justify-between gap-6 bg-white dark:bg-gray-900 p-6 lg:p-8 rounded-[2.5rem] lg:rounded-[3rem] border border-gray-100 dark:border-gray-700 shadow-sm relative">
+        <div className="flex items-center gap-4 w-full xl:w-auto">
+          <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-900/40 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
+            <CalendarDays size={28} />
+          </div>
+          <div>
+            <h2 className="text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Attendance Grid</h2>
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mt-1.5 flex items-center gap-2">
+              <ShieldCheck size={12} className="text-emerald-500" /> Operational Protocol Interface
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+          {viewMode === 'mark' && (
+            <div className="w-full xl:w-auto px-2 py-3 bg-gray-50/50 dark:bg-gray-800/40 rounded-[2rem] border border-gray-100/50 dark:border-gray-700/50 shadow-inner">
+              <div className="flex items-center justify-between xl:justify-start gap-1.5 lg:gap-3">
+                {/* Semester Node */}
+                <div className="flex items-center gap-1.5 px-2.5 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
+                  <select 
+                    value={semester} 
+                    onChange={(e) => {
+                      const newSem = parseInt(e.target.value);
+                      setSemester(newSem);
+                      onPersistChange(newSem, selectedCourse);
+                    }}
+                    className="bg-transparent border-none text-xs lg:text-xs font-semibold text-gray-900 dark:text-white focus:ring-0 outline-none w-10 appearance-none cursor-pointer uppercase tracking-tighter" 
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s} className="bg-white dark:bg-gray-900 text-black">S{s}</option>)}
+                  </select>
+                </div>
+
+                {/* Section Node */}
+                <div className="flex items-center gap-1.5 px-2.5 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
+                  <select 
+                    value={section} 
+                    onChange={(e) => setSection(e.target.value)}
+                    className="bg-transparent border-none text-xs lg:text-xs font-semibold text-gray-900 dark:text-white focus:ring-0 outline-none w-10 appearance-none cursor-pointer uppercase tracking-tighter" 
+                  >
+                    {['A', 'B'].map(s => <option key={s} value={s} className="bg-white dark:bg-gray-900 text-black">SEC {s}</option>)}
+                  </select>
+                </div>
+
+                {/* Date Node */}
+                <div className="flex items-center gap-1.5 px-2.5 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex-1 min-w-0">
+                  <Clock size={10} className="text-indigo-500 shrink-0 hidden xs:block" />
+                  <input 
+                    type="datetime-local" 
+                    value={attendanceDate} 
+                    onChange={(e) => setAttendanceDate(e.target.value)}
+                    className="bg-transparent border-none text-xs lg:text-xs font-semibold uppercase tracking-tighter text-gray-900 dark:text-white focus:ring-0 outline-none w-full min-w-0" 
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-800 flex-1 md:flex-none">
+              <button onClick={() => setViewMode('mark')}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all ${viewMode === 'mark' ? 'bg-white dark:bg-gray-800 text-indigo-600 shadow-sm border border-indigo-100/50 dark:border-indigo-900/50' : 'text-gray-400 hover:text-gray-600'}`}>
+                Mark Daily
+              </button>
+              <button onClick={() => setViewMode('view')}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all ${viewMode === 'view' ? 'bg-white dark:bg-gray-800 text-indigo-600 shadow-sm border border-indigo-100/50 dark:border-indigo-900/50' : 'text-gray-400 hover:text-gray-600'}`}>
+                View Logs
+              </button>
+            </div>
+
+            {viewMode === 'mark' && isAuthorized && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 shadow-inner shrink-0">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Kinetic Save Active</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col h-[600px]">
+            <div className="flex items-center justify-between mb-4 shrink-0">
+               <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-200 uppercase tracking-wide">Select Subject</h3>
+               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500">{sidebarFilteredCourses.length}</span>
+            </div>
+
+            <div className="relative mb-4 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
+              <input 
+                type="text" 
+                placeholder="Search subjects..." 
+                value={subjectSearch}
+                onChange={(e) => setSubjectSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-indigo-500 transition placeholder:text-gray-400"
+              />
+            </div>
+
+            <div className="space-y-1.5 overflow-y-auto pr-2 custom-scrollbar flex-1">
+              {sidebarFilteredCourses.map(course => (
+                <button key={course._id} onClick={() => {
+                   setSelectedCourse(course);
+                   onPersistChange(semester, course);
+                   if (viewMode === 'view') setViewMode('mark');
+                }}
+                  className={`w-full text-left p-3 rounded-2xl transition-all border group ${selectedCourse?._id === course._id ? 'bg-indigo-50 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800 shadow-sm' : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`text-xs font-semibold uppercase leading-tight transition-colors ${selectedCourse?._id === course._id ? 'text-indigo-600' : 'text-gray-700 dark:text-gray-300'}`}>{course.name}</p>
+                    <ArrowRight size={10} className={`mt-0.5 shrink-0 ${selectedCourse?._id === course._id ? 'text-indigo-400' : 'text-gray-300 opacity-0'}`} />
+                  </div>
+                  <p className="text-xs font-bold text-gray-400 dark:text-gray-300 mt-1 uppercase tracking-wide">{course.code} · Sem {course.semester}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-3 space-y-6">
+          {viewMode === 'mark' ? (
+            <div className="bg-white dark:bg-[#080c14] rounded-[2.5rem] border border-slate-200 dark:border-slate-800/60 shadow-xl overflow-hidden relative min-h-[500px]">
+              <div className="overflow-x-auto custom-scrollbar h-full">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-50/80 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                    <tr>
+                      <th className="px-8 py-5 text-xs font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-200 dark:border-slate-800/60 font-semibold">Student Identity</th>
+                      <th className="px-8 py-5 text-xs font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-200 dark:border-slate-800/60 font-semibold">Recognition Logs</th>
+                      <th className="px-8 py-5 text-xs font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-200 dark:border-slate-800/60 text-center font-semibold">Response</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                    {paginatedStudents.map(student => (
+                      <tr key={student._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-all">
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="relative group/avatar">
+                              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-indigo-500/10 dark:bg-white/10 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/10 transition-transform group-hover/avatar:scale-110">
+                                {student.profilePic ? (
+                                  <img src={student.profilePic} className="w-full h-full object-cover" alt={student.name} />
+                                ) : (
+                                  <Users size={16} className="text-indigo-500" />
+                                )}
+                              </div>
+                              <button onClick={() => setViewingStudentId(student._id)} className="absolute -right-1.5 -bottom-1.5 p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-lg opacity-0 group-hover/avatar:opacity-100 transition-all border border-slate-100 dark:border-slate-700"><MoreHorizontal size={10} className="text-slate-400" /></button>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold dark:text-white uppercase tracking-tight truncate max-w-[120px] lg:max-w-none">{student.name}</p>
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mt-0.5">{student.rollNumber}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                          <div className="flex flex-col gap-1.5 overflow-hidden">
+                            {dailyFaceData[student._id] ? (
+                              <div className="bg-emerald-500/5 dark:bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 max-w-[180px]">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <ShieldCheck size={10} className="text-emerald-500" />
+                                  <span className="text-xs font-semibold text-emerald-500 uppercase tracking-wide truncate">{dailyFaceData[student._id].exit?.time ? 'Face Verified' : 'Entry Recorded'}</span>
+                                </div>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter tabular-nums">
+                                  {new Date(dailyFaceData[student._id].entry?.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {dailyFaceData[student._id].exit?.time && ` → ${new Date(dailyFaceData[student._id].exit.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800/60 max-w-[180px]">
+                                <RefreshCw size={10} className="text-slate-300 animate-spin-slow" />
+                                <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Awaiting Logs</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                            <div className="flex items-center justify-center relative">
+                              <div className={`flex items-center gap-1 p-1 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 transition-opacity ${savingStudentId === student._id ? 'opacity-40 pointer-events-none' : ''}`}>
+                                {[
+                                  { key: 'present', label: 'P', color: 'indigo' },
+                                  { key: 'absent', label: 'A', color: 'rose' },
+                                  { key: 'late', label: 'L', color: 'amber' },
+                                  { key: 'excused', label: 'E', color: 'emerald' }
+                                ].map(status => (
+                                  <button 
+                                    key={status.key} 
+                                    onClick={() => handleStatusChange(student._id, status.key)}
+                                    className={`w-8 h-8 lg:w-9 lg:h-9 rounded-xl text-xs font-semibold transition-all flex items-center justify-center ${
+                                      attendanceEntries[student._id] === status.key 
+                                        ? `bg-${status.color}-600 text-white shadow-lg shadow-${status.color}-600/20 translate-y-[-2px]` 
+                                        : 'text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-white/5'
+                                    }`}
+                                  >
+                                    {status.label}
+                                  </button>
+                                ))}
+                                {attendanceEntries[student._id] && (
+                                  <button 
+                                    onClick={() => handleStatusChange(student._id, null)} 
+                                    className="w-8 h-8 flex items-center justify-center text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                )}
+                              </div>
+                              {savingStudentId === student._id && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <RefreshCw size={14} className="text-indigo-500 animate-spin" />
+                                </div>
+                              )}
+                            </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {!isAuthorized && (
+                <motion.div initial={{ opacity: 0, backdropFilter: 'blur(0px)' }} animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+                  className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/20 dark:bg-slate-900/40">
+                  <div className="bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center text-center max-w-md mx-4">
+                    <div className="w-20 h-20 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 mb-6 border border-rose-500/20 shadow-xl shadow-rose-500/10"><Shield size={32} /></div>
+                    <h3 className="text-xl font-semibold italic dark:text-white uppercase tracking-tighter mb-3">Access Denied</h3>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide leading-relaxed">
+                      This sector is restricted to faculty members explicitly assigned to <span className="text-rose-500">{selectedCourse?.name || 'this course'}</span>.
+                    </p>
+                    <div className="mt-8 flex flex-col gap-2 w-full">
+                       <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                          <Activity size={14} className="text-slate-400"/><p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Contact HOD for manual lattice induction</p>
+                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          ) : (
+             <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+               <div className="p-6 border-b border-gray-50 dark:border-gray-800 flex items-center justify-between">
+                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Historical Logs</h3>
+               </div>
+               <div className="overflow-x-auto flex-1 h-[500px]">
+                 <table className="w-full text-left border-collapse h-full">
+                   <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800/80 backdrop-blur-sm z-10">
+                     <tr>
+                       <th className="px-6 py-4 text-xs font-semibold uppercase text-gray-400 tracking-wide">Date</th>
+                       <th className="px-6 py-4 text-xs font-semibold uppercase text-gray-400 tracking-wide">Student</th>
+                       <th className="px-6 py-4 text-xs font-semibold uppercase text-gray-400 tracking-wide text-center">Status</th>
+                     </tr>
+                   </thead>
+                   <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                     {history.map(record => (
+                       <tr key={record._id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-all italic">
+                         <td className="px-6 py-4 text-xs font-semibold dark:text-white">{new Date(record.date).toLocaleDateString()}</td>
+                         <td className="px-6 py-4 text-xs font-semibold dark:text-white">{record.student?.name}</td>
+                         <td className="px-6 py-4 text-center">
+                            <span className={`px-2 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide ${record.status === 'present' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                              {record.status}
+                            </span>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          )}
+        </div>
+      </div>
+
+      {viewingStudentId && (
+        <AdminStudentProfileModal studentId={viewingStudentId} user={user} onClose={() => setViewingStudentId(null)} />
+      )}
+    </div>
+  );
+};
+
+export default AttendanceManager;
