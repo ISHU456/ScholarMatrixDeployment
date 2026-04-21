@@ -288,7 +288,7 @@ const Courses = () => {
          </div>
       </header>
       
-      <div className="lg:hidden sticky top-[72px] z-[35] flex overflow-x-auto py-4 px-4 bg-white/95 dark:bg-[#060811]/95 backdrop-blur-3xl border-b border-gray-100 dark:border-gray-800 custom-scrollbar gap-3 no-scrollbar shadow-lg shadow-black/5">
+      <div className="lg:hidden sticky top-[72px] z-[45] flex overflow-x-auto py-4 px-4 bg-white dark:bg-[#060811] border-b border-gray-100 dark:border-gray-800 gap-3 shadow-md">
         {semesters.map((sem) => (
           <button 
             key={sem.id} 

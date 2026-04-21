@@ -62,6 +62,13 @@ const CourseDetail = () => {
   const [activeSection, setActiveSection] = useState(() => 
     searchParams.get('section') || localStorage.getItem(`course_active_tab_${courseId}`) || 'timetable'
   );
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [onlineStudents, setOnlineStudents] = useState(0);
   const [classLive, setClassLive] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
@@ -863,7 +870,7 @@ const CourseDetail = () => {
   return (
     <div className="flex h-screen bg-[#f8fafc] dark:bg-[#030712] overflow-hidden font-sans relative">
       <AnimatePresence>
-        {sidebarOpen && window.innerWidth < 1024 && (
+        {sidebarOpen && windowWidth < 1024 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -978,8 +985,11 @@ const CourseDetail = () => {
                     <>
                       <div
                         ref={leftColumnRef}
-                        style={{ width: window.innerWidth >= 1024 ? `${leftWidth}%` : '100%', minWidth: window.innerWidth >= 1024 ? '400px' : 'auto' }}
-                        className={`flex flex-col gap-6 min-h-0 overflow-y-auto pr-2 custom-scrollbar transition-all w-full lg:w-auto ${isDragging ? 'duration-0 pointer-events-none' : 'duration-300'} ${window.innerWidth < 1024 && (previewItem || selectedAssignment) ? 'hidden' : 'flex'}`}
+                        style={{ 
+                          width: windowWidth >= 1024 ? `${leftWidth}%` : '100%', 
+                          minWidth: windowWidth >= 1024 ? '400px' : 'auto' 
+                        }}
+                        className={`flex flex-col gap-6 min-h-0 overflow-y-auto pr-2 custom-scrollbar transition-all w-full lg:w-auto ${isDragging ? 'duration-0 pointer-events-none' : 'duration-300'} ${windowWidth < 1024 && (previewItem || selectedAssignment) ? 'hidden' : 'flex'}`}
                       >
                         {activeSection === 'timetable' && (
                           <div className="flex flex-col gap-4">

@@ -32,10 +32,10 @@ const StudentResults = () => {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-indigo-600/10 border border-indigo-500/20 p-6 rounded-[2rem] flex items-center justify-between gap-6"
+            className="bg-indigo-600/10 border border-indigo-500/20 p-6 rounded-[2rem] flex flex-col sm:flex-row items-center justify-between gap-6"
           >
-            <div className="flex items-center gap-4">
-                <div className="p-3 bg-indigo-500 text-white rounded-2xl shadow-lg shadow-indigo-500/20">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="p-3 bg-indigo-500 text-white rounded-2xl shadow-lg shadow-indigo-500/20 shrink-0">
                     <ShieldCheck size={24} />
                 </div>
                 <div>
@@ -50,7 +50,7 @@ const StudentResults = () => {
                   target="_blank"
                   rel="noreferrer"
                   download={`${user.rollNumber}_Sem${user.semester}.pdf`}
-                  className="px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-semibold text-xs uppercase tracking-wide shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2 shrink-0 animate-pulse"
+                  className="w-full sm:w-auto px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-semibold text-xs uppercase tracking-wide shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 shrink-0 animate-pulse"
                 >
                   <Download size={16} /> Download Official Transcript
                 </a>
