@@ -134,23 +134,6 @@ const DashboardOverview = ({ user }) => {
   return (
     <div className="space-y-8">
       {/* Alert Banner for Low Attendance */}
-      {totalLowAttendance > 0 && (
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-3xl bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-200">
-              <Bell size={20} className="animate-bounce" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-rose-900 dark:text-rose-100 uppercase tracking-tight">System Notice: Immediate Action Required</p>
-              <p className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide mt-0.5">{totalLowAttendance} students have dropped below 75% attendance. Threshold security active.</p>
-            </div>
-          </div>
-          <button className="px-4 py-2 bg-rose-500 text-white text-xs font-semibold uppercase tracking-wide rounded-xl hover:opacity-90 transition-all shadow-md">
-            Execute Filter
-          </button>
-        </motion.div>
-      )}
 
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
