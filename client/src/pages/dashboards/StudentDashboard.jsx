@@ -675,12 +675,28 @@ const StudentDashboard = () => {
                                );
                            })}
                         </div>
-                        <div className="h-2.5 bg-gray-200/50 dark:bg-gray-800 rounded-full overflow-hidden border border-gray-100 dark:border-gray-700/50 relative">
-                           <motion.div
-                             initial={{ width: 0 }}
-                             animate={{ width: `${Math.min(100, ((streakDays % 7) || (streakDays > 0 ? 7 : 0)) / 7 * 100)}%` }}
-                             className="h-full bg-gradient-to-r from-orange-600 via-orange-400 to-amber-300 shadow-[0_0_20px_rgba(249,115,22,0.6)]"
-                           />
+                        
+                        {/* Session Streak Timer Progress Bar */}
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50">
+                           <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                 <Clock size={14} className="text-primary-500" />
+                                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Session Sync Status</span>
+                              </div>
+                              <span className="text-xs font-bold text-primary-600 tabular-nums">
+                                 {Math.floor(sessionSeconds / 60)}:{(sessionSeconds % 60).toString().padStart(2, '0')} / 5:00
+                              </span>
+                           </div>
+                           <div className="h-2.5 bg-gray-200/50 dark:bg-gray-900 rounded-full overflow-hidden relative border border-gray-100 dark:border-gray-800">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(sessionSeconds / 300) * 100}%` }}
+                                className={`h-full bg-gradient-to-r from-primary-600 to-indigo-600 shadow-[0_0_15px_rgba(67,97,238,0.4)] ${sessionSeconds >= 300 ? 'animate-pulse' : ''}`}
+                              />
+                           </div>
+                           <p className="text-[9px] font-bold text-gray-400 mt-2 uppercase tracking-tight text-center">
+                              {sessionSeconds >= 300 ? 'Neural Grid Synchronized - Streak Secured' : 'Maintain active link for 5 minutes to verify daily streak'}
+                           </p>
                         </div>
                     </div>
                 </div>
