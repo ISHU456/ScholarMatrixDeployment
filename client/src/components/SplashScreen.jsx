@@ -65,7 +65,7 @@ const SplashScreen = () => {
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
               transition={{ 
-                duration: 1.5, 
+                duration: 0.8, 
                 repeat: Infinity, 
                 ease: "easeInOut" 
               }}

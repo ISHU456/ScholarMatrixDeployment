@@ -8,6 +8,7 @@ import {
     ArrowLeft, Layout, ShieldCheck, Loader2, 
     Trash2, Edit3, X, Check, Save
 } from 'lucide-react';
+import PageLoader from '../../../components/PageLoader';
 
 const QuickSchedulePage = () => {
     const { courseId } = useParams();
@@ -106,8 +107,7 @@ const QuickSchedulePage = () => {
     if (isLoading) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950">
-                <Loader2 className="w-12 h-12 text-primary-600 animate-spin mb-4" />
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">Decrypting Temporal Nodes...</p>
+                <PageLoader message="Decrypting Temporal Nodes" />
             </div>
         );
     }

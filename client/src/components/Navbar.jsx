@@ -143,23 +143,27 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                 <Link
                   key={finalLink.path}
                   to={finalLink.path}
-                  className={`relative px-4 py-2 group`}
+                  className={`relative px-4 py-2 group rounded-xl transition-all duration-300 ${finalLink.name === 'AI Mode' ? 'ai-mode-gradient-border mx-2' : ''}`}
                 >
-                  <span className={`relative z-10 text-xs font-medium uppercase tracking-wide transition-colors duration-300 ${location.pathname === finalLink.path ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'}`}>
+                  <span className={`relative z-10 text-xs font-medium uppercase tracking-wide transition-colors duration-300 ${location.pathname === finalLink.path ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'} ${finalLink.name === 'AI Mode' ? 'ai-mode-text-glow' : ''}`}>
                     {finalLink.name}
                   </span>
 
                   
                   {/* Premium Hover Interaction */}
-                  <div className={`absolute inset-0 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 -z-0`} />
+                  {finalLink.name !== 'AI Mode' && (
+                    <div className={`absolute inset-0 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 -z-0`} />
+                  )}
                   
-                  {location.pathname === finalLink.path && (
+                  {location.pathname === finalLink.path && finalLink.name !== 'AI Mode' && (
                     <motion.div 
                       layoutId="nav-underline"
                       className="absolute bottom-0 left-4 right-4 h-0.5 bg-primary-500 rounded-full"
                     />
                   )}
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-500/40 rounded-full group-hover:w-1/2 transition-all duration-300" />
+                  {finalLink.name !== 'AI Mode' && (
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-500/40 rounded-full group-hover:w-1/2 transition-all duration-300" />
+                  )}
                 </Link>
               );
             })}
@@ -190,12 +194,13 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             <div className="flex items-center gap-3 pl-3 border-l border-gray-100 dark:border-gray-800 relative">
               {user ? (
                 <>
-                  {/* Streak Compact */}
-                  <div className="hidden lg:flex items-center gap-1 px-2 py-1.5 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-900/20 mr-1">
-                    <Flame size={12} className={gamification?.streakDays > 0 ? 'fill-current' : 'opacity-40'} />
-                    <span className="text-xs font-bold">{gamification?.streakDays || 0}</span>
-
-                  </div>
+                  {/* Streak Compact - Only for Students */}
+                  {user.role === 'student' && (
+                    <div className="hidden lg:flex items-center gap-1 px-2 py-1.5 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-900/20 mr-1">
+                      <Flame size={12} className={gamification?.streakDays > 0 ? 'fill-current' : 'opacity-40'} />
+                      <span className="text-xs font-bold">{gamification?.streakDays || 0}</span>
+                    </div>
+                  )}
 
                   {/* Profile Trigger - Avatar Only */}
                   <div className="relative">

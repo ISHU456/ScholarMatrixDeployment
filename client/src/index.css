@@ -236,3 +236,38 @@ thead th {
   backface-visibility: hidden;
   perspective: 1000px;
 }
+
+/* AI Mode Animated Border */
+@keyframes border-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.ai-mode-gradient-border {
+  position: relative;
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(90deg, #3b82f6, #8b5cf6, #f59e0b, #10b981) border-box;
+  background-size: 200% 200%;
+  animation: border-rotate 4s linear infinite;
+  transition: all 0.3s ease;
+}
+
+.dark .ai-mode-gradient-border {
+  background: linear-gradient(#0f172a, #0f172a) padding-box,
+              linear-gradient(90deg, #60a5fa, #a78bfa, #fbbf24, #34d399) border-box;
+}
+
+.ai-mode-gradient-border:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.ai-mode-text-glow {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #f59e0b, #10b981);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: border-rotate 4s linear infinite;
+}

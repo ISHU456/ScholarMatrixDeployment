@@ -134,12 +134,12 @@ const AppContent = () => {
     // Advanced loading logic: Wait for window load AND a minimum cinematic delay
     const handleLoad = () => {
       // Small additional delay after load for smooth entry
-      setTimeout(() => setIsInitializing(false), 800);
+      setTimeout(() => setIsInitializing(false), 300);
     };
 
     if (document.readyState === 'complete') {
-      // If already loaded, still show splash for at least 2 seconds for branding
-      const timer = setTimeout(() => setIsInitializing(false), 2000);
+      // If already loaded, still show splash for at least 0.6 seconds for branding
+      const timer = setTimeout(() => setIsInitializing(false), 600);
       return () => clearTimeout(timer);
     } else {
       window.addEventListener('load', handleLoad);

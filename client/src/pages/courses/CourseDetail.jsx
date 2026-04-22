@@ -23,6 +23,7 @@ import {
 } from '../../utils/gamificationStore';
 import CompletionPreview from '../../components/course/CompletionPreview';
 import Schedule from './schedule/Schedule';
+import PageLoader from '../../components/PageLoader';
 
 // Modular Components
 import SidebarNav from './course_modules/SidebarNav';
@@ -713,9 +714,8 @@ const CourseDetail = () => {
     switch(previewItem.type) {
         case 'loading':
             return (
-                <div className="flex flex-col items-center justify-center h-full">
-                    <Loader2 className="w-16 h-16 animate-spin text-primary-500" />
-                    <p className="mt-4 text-lg font-bold text-gray-500 dark:text-gray-400">Loading Preview...</p>
+                <div className="h-full flex items-center justify-center">
+                    <PageLoader message="Decrypting Resource" />
                 </div>
             );
         case 'error':

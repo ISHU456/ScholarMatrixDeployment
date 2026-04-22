@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Award, BookOpen, GraduationCap, TrendingUp, FileText, Globe, ShieldCheck, Lock } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import PageLoader from '../../components/PageLoader';
 
 const StudentResults = () => {
   const dispatch = useDispatch();
@@ -17,11 +18,7 @@ const StudentResults = () => {
 
   if (isLoading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-        <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full"
-        />
+        <PageLoader message="Fetching Academic Performance" />
     </div>
   );
 

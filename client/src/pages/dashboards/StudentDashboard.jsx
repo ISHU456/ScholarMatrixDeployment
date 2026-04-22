@@ -22,6 +22,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import PageLoader from '../../components/PageLoader';
 
 import QuizCenter from '../../components/student/QuizCenter';
 import QuizArena from '../../components/student/QuizArena';
@@ -87,7 +88,7 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 500);
+    const timer = setTimeout(() => setIsLoading(false), 300);
     
     // Sync latest profile data on mount to ensure semester/details are fresh
     const syncProfile = async () => {
@@ -431,9 +432,8 @@ const StudentDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-73px)] flex-col lg:flex-row bg-gray-50 dark:bg-[#0f172a] p-4 md:p-8 gap-6 animate-pulse">
-        <div className="w-full lg:w-64 bg-gray-200 rounded-2xl h-48 lg:h-full"></div>
-        <div className="flex-1 bg-gray-200 rounded-2xl h-56 lg:h-full"></div>
+      <div className="flex min-h-[calc(100vh-73px)] items-center justify-center bg-gray-50 dark:bg-[#0f172a]">
+        <PageLoader message="Calibrating Dashboard" />
       </div>
     );
   }

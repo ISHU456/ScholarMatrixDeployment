@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Home, User, CheckCircle, CreditCard, MessageCircle, BarChart2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import PageLoader from '../../components/PageLoader';
 
 const ParentDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -10,7 +11,7 @@ const ParentDashboard = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 800);
+    const timer = setTimeout(() => setIsLoading(false), 300);
     return () => clearTimeout(timer);
   }, [activeTab]);
 
@@ -29,9 +30,8 @@ const ParentDashboard = () => {
   ];
 
   if (isLoading) return (
-    <div className="flex min-h-[calc(100vh-73px)] flex-col lg:flex-row bg-gray-50 p-4 md:p-8 gap-6 animate-pulse">
-       <div className="w-full lg:w-64 bg-gray-200 rounded-2xl h-48 lg:h-full"></div>
-       <div className="flex-1 bg-gray-200 rounded-2xl h-56 lg:h-full"></div>
+    <div className="flex min-h-[calc(100vh-73px)] items-center justify-center bg-gray-50 dark:bg-[#030712]">
+       <PageLoader message="Fetching Student Records" />
     </div>
   );
 

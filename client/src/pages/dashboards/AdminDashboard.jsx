@@ -17,6 +17,7 @@ import AdminPendingTeachers from '../../components/admin/AdminPendingTeachers';
 import AttendanceManager from '../../components/teacher/AttendanceManager';
 import MonthlyRegister from '../../components/teacher/MonthlyRegister';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageLoader from '../../components/PageLoader';
 
 const AdminDashboard = () => {
   const { user } = useSelector(state => state.auth);
@@ -67,7 +68,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 800);
+    const timer = setTimeout(() => setIsLoading(false), 300);
     return () => clearTimeout(timer);
   }, [activeTab]);
 
@@ -121,25 +122,8 @@ const AdminDashboard = () => {
   const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
 
   if (isLoading) return (
-    <div className="flex h-[calc(100vh-73px)] items-center justify-center bg-slate-50 dark:bg-[#030712] transition-colors duration-500 overflow-hidden relative">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-      </div>
-
-      <div className="relative flex flex-col items-center">
-        <motion.div
-          animate={{ 
-            rotate: 360,
-            transition: { duration: 2, repeat: Infinity, ease: "linear" }
-          }}
-          className="w-16 h-16 rounded-[1.5rem] border-t-2 border-indigo-600 dark:border-indigo-500 mb-8"
-        />
-        <div className="text-center space-y-2">
-          <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-400 animate-pulse">Initializing Data Protocol</h2>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 italic">Syncing with Governance Node...</p>
-        </div>
-      </div>
+    <div className="flex min-h-[calc(100vh-73px)] items-center justify-center bg-slate-50 dark:bg-[#030712]">
+      <PageLoader message="Initializing Data Protocol" />
     </div>
   );
 

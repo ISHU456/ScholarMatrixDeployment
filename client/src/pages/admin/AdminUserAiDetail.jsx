@@ -12,6 +12,7 @@ import {
   ResponsiveContainer, AreaChart, Area, 
   XAxis, YAxis, CartesianGrid, Tooltip 
 } from 'recharts';
+import PageLoader from '../../components/PageLoader';
 
 const AdminUserAiDetail = () => {
   const { userId } = useParams();
@@ -66,9 +67,8 @@ const AdminUserAiDetail = () => {
   }, [data?.logs]);
 
   if (isLoading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#0f172a]">
-       <Loader2 size={40} className="animate-spin text-indigo-500" />
-       <p className="text-xs font-semibold uppercase tracking-wide text-indigo-400">Auditing Neural Activity...</p>
+    <div className="flex h-screen w-full items-center justify-center bg-gray-950">
+      <PageLoader message="Initializing Neural Audit" />
     </div>
   );
 
