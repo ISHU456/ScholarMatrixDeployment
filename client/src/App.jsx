@@ -131,11 +131,25 @@ const AppContent = () => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    // Initializing delay to ensure all components and theme are set smoothly
-    const timer = setTimeout(() => {
-      setIsInitializing(false);
-    }, 1200);
-    return () => clearTimeout(timer);
+    // Advanced loading logic: Wait for window load AND a minimum cinematic delay
+    const handleLoad = () => {
+      // Small additional delay after load for smooth entry
+      setTimeout(() => setIsInitializing(false), 800);
+    };
+
+    if (document.readyState === 'complete') {
+      // If already loaded, still show splash for at least 2 seconds for branding
+      const timer = setTimeout(() => setIsInitializing(false), 2000);
+      return () => clearTimeout(timer);
+    } else {
+      window.addEventListener('load', handleLoad);
+      // Fallback timer in case load event takes too long
+      const fallback = setTimeout(() => setIsInitializing(false), 5000);
+      return () => {
+        window.removeEventListener('load', handleLoad);
+        clearTimeout(fallback);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -188,7 +202,14 @@ const AppContent = () => {
         {isInitializing && <SplashScreen key="splash" />}
       </AnimatePresence>
 
-      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      {!isInitializing && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="flex flex-col h-full"
+        >
+          <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <GlobalAlertMarquee />
       <main className="flex-grow flex flex-col relative w-full overflow-y-auto smooth-scroll min-h-0 bg-transparent gpu-accelerated">
         <Routes>
@@ -376,8 +397,10 @@ const AppContent = () => {
       </main>
       {!isAIMode && <Footer />}
       <NotificationListener />
-      <AchievementToaster />
-      {!isAIMode && <Chatbot />}
+          <AchievementToaster />
+          {!isAIMode && <Chatbot />}
+        </motion.div>
+      )}
     </div>
   );
 };

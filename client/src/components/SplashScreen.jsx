@@ -32,7 +32,7 @@ const SplashScreen = () => {
                 }}
                 className="text-4xl font-black bg-gradient-to-br from-primary-600 to-indigo-600 bg-clip-text text-transparent"
               >
-                SN
+                SM
               </motion.div>
             </div>
           </div>
@@ -53,7 +53,7 @@ const SplashScreen = () => {
           className="text-center"
         >
           <h1 className="text-2xl font-bold tracking-[0.2em] text-gray-900 dark:text-white uppercase mb-2">
-            ScholorNode
+            ScholarMatrix
           </h1>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-6">
             Initalizing Academic Environment

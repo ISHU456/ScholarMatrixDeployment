@@ -60,7 +60,7 @@ const WaitingAuthorization = () => {
                     </h1>
                     
                     <p className="text-slate-500 dark:text-slate-400 text-lg font-medium max-w-md mx-auto mb-10 leading-relaxed">
-                        Welcome to <span className="text-indigo-600 dark:text-indigo-400 font-bold">ScholorNode</span>, <span className="capitalize">{user.name}</span>. Your faculty profile is currently in the verification queue.
+                        Welcome to <span className="text-indigo-600 dark:text-indigo-400 font-bold">ScholarMatrix</span>, <span className="capitalize">{user.name}</span>. Your faculty profile is currently in the verification queue.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10 text-left">
@@ -116,7 +116,7 @@ const WaitingAuthorization = () => {
                     </div>
                     <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 italic">ScholorNode v4.0</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 italic">ScholarMatrix v4.0</span>
                     </div>
                 </div>
             </motion.div>
