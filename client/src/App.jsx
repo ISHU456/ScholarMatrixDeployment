@@ -14,7 +14,7 @@ import ScrollToTop from './components/ScrollToTop';
 import LockedOverlay from './components/LockedOverlay';
 import GlobalAlertMarquee from './components/GlobalAlertMarquee';
 import SplashScreen from './components/SplashScreen';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Auth pages
 import Login from './pages/auth/Login';
