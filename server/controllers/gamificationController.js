@@ -40,9 +40,9 @@ export const submitQuiz = async (req, res) => {
         const quiz = await Quiz.findById(quizId);
         if (!quiz) return res.status(404).json({ message: "Quiz not found" });
 
-        // 1. LIMIT: Check if user already attempted this quiz
+        // 1. LIMIT: Check if user already attempted this quiz (Bypass for admins)
         const existingAttempt = await QuizAttempt.findOne({ user: userId, quiz: quizId });
-        if (existingAttempt) {
+        if (existingAttempt && req.user.role !== 'admin') {
             return res.status(403).json({ message: "Access Denied: You have already participated in this arena." });
         }
 
@@ -182,7 +182,8 @@ export const createQuiz = async (req, res) => {
 
 export const getQuizzes = async (req, res) => {
     try {
-        const quizzes = await Quiz.find({ isActive: true }).select('title description category timeLimit totalPoints');
+        const filter = req.user.role === 'admin' ? {} : { isActive: true };
+        const quizzes = await Quiz.find(filter).select('title description category timeLimit totalPoints isActive');
         const attempts = await QuizAttempt.find({ user: req.user._id }).select('quiz');
         const attemptedQuizIds = attempts.map(a => a.quiz.toString());
 
@@ -271,6 +272,64 @@ export const getQuizAttendees = async (req, res) => {
             .populate('user', 'name email rollNumber department semester profilePic')
             .sort({ score: -1, timeTaken: 1 });
         res.json(attempts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const resetQuizAttempt = async (req, res) => {
+    try {
+        const { quizId, userId } = req.params;
+        
+        // Only admins can reset attempts
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized: Admin access required." });
+        }
+
+        const result = await QuizAttempt.findOneAndDelete({ quiz: quizId, user: userId });
+        
+        if (!result) {
+            return res.status(404).json({ message: "Attempt record not found." });
+        }
+
+        res.json({ message: "Quiz attempt reset successfully. Student may re-participate." });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const resetAllQuizAttempts = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized: Admin access required." });
+        }
+
+        const result = await QuizAttempt.deleteMany({ quiz: id });
+        console.log(`Admin ${req.user.email} reset all attempts for quiz ${id}. Deleted: ${result.deletedCount}`);
+        res.json({ message: `All quiz attempts have been reset. Deleted ${result.deletedCount} records.` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const toggleQuizStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized: Admin access required." });
+        }
+
+        const quiz = await Quiz.findById(id);
+        if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+        quiz.isActive = !quiz.isActive;
+        await quiz.save();
+
+        console.log(`Admin ${req.user.email} toggled quiz ${id} to ${quiz.isActive ? 'Active' : 'Inactive'}`);
+        res.json({ message: `Quiz status updated to ${quiz.isActive ? 'Active' : 'Inactive'}`, isActive: quiz.isActive });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

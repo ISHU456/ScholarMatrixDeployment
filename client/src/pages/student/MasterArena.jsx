@@ -32,36 +32,33 @@ const MasterArena = () => {
   const [prizes, setPrizes] = useState([]);
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewingAttendeesId, setViewingAttendeesId] = useState(null);
   const [activeTab, setActiveTab] = useState('hall'); // 'hall' or 'governance'
 
+  const fetchData = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const [qRes, lRes, pRes, oRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, config),
+        axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/leaderboard`, config),
+        axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/prizes`, config),
+        axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/orders/my`, config)
+      ]);
+      
+      const sortedPrizes = pRes.data.sort((a,b) => a.rank - b.rank);
+      setPrizes(sortedPrizes);
+      setQuizzes(qRes.data);
+      setLeaderboard(lRes.data);
+      setOrders(oRes.data);
+    } catch (err) {
+      console.error("Failed to fetch arena data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const [qRes, lRes, pRes, oRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, config),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/leaderboard`, config),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/prizes`, config),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/orders/my`, config)
-        ]);
-        
-        const sortedPrizes = pRes.data.sort((a,b) => a.rank - b.rank);
-        console.log("MasterArena Prizes Loaded:", sortedPrizes.map(p => ({ title: p.title, img: p.image })));
-        setPrizes(sortedPrizes);
-        setQuizzes(qRes.data);
-        setLeaderboard(lRes.data);
-        setOrders(oRes.data);
-      } catch (err) {
-        console.error("Failed to fetch arena data", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     if (user?.token) fetchData();
   }, [user]);
-
-  const nextPrize = prizes.sort((a, b) => a.coinsRequired - b.coinsRequired).find(p => p.coinsRequired > user.coins) || prizes[0];
 
   if (isLoading) {
     return (
@@ -173,16 +170,12 @@ const MasterArena = () => {
                </div>
             </div>
           </div>
-
-          <div className="lg:col-span-4">
-            <PrizeProgress coins={user?.coins || 0} prizes={prizes} />
-          </div>
         </div>
 
         {user?.role === 'admin' && (
           <div className="flex items-center gap-4 mb-12">
              <button onClick={() => setActiveTab('hall')} className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'hall' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-white/10'}`}>Master Arena Hub</button>
-             <button onClick={() => setActiveTab('governance')} className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'governance' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-white/10'}`}>ordersList</button>
+             <button onClick={() => setActiveTab('governance')} className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'governance' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-white/10'}`}>Orders Manager</button>
           </div>
         )}
 
@@ -192,33 +185,21 @@ const MasterArena = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Left Column: Quiz Hall & Honors */}
-          <div className="lg:col-span-8 space-y-12">
-            <QuizHall 
-              quizzes={quizzes} 
-              onSelect={(id) => navigate(`/quiz-arena/${id}`)} 
-              isAdmin={user?.role === 'admin'}
-              onViewAttendees={(id) => setViewingAttendeesId(id)}
-            />
+            <div className="lg:col-span-8 space-y-12">
+              <QuizHall 
+                quizzes={quizzes} 
+                onSelect={(id) => navigate(`/quiz-arena/${id}`)} 
+                onRefresh={fetchData}
+                isAdmin={user?.role === 'admin'}
+              />
+            </div>
+            <div className="lg:col-span-4 space-y-8">
+              <Leaderboard data={leaderboard} />
+              <OrderHistory orders={orders} />
+            </div>
           </div>
-
-          {/* Right Column: Leaderboard & History */}
-          <div className="lg:col-span-4 space-y-8">
-            <Leaderboard data={leaderboard} />
-            <OrderHistory orders={orders} />
-          </div>
-        </div>
         )}
       </div>
-      <AnimatePresence>
-        {viewingAttendeesId && (
-          <AdminQuizAttendees 
-            quizId={viewingAttendeesId} 
-            onClose={() => setViewingAttendeesId(null)} 
-            user={user} 
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };

@@ -21,6 +21,9 @@ router.get('/leaderboard', protect, getLeaderboard);
 router.get('/quizzes', protect, getQuizzes);
 router.get('/quizzes/:id', protect, getQuizDetails);
 router.get('/quizzes/:quizId/attendees', protect, admin, getQuizAttendees);
+router.delete('/quizzes/:id/reset-all', protect, admin, resetAllQuizAttempts);
+router.patch('/quizzes/:id/toggle-status', protect, admin, toggleQuizStatus);
+router.delete('/quizzes/:quizId/attempts/:userId', protect, admin, resetQuizAttempt);
 router.post('/quizzes/submit', protect, submitQuiz);
 router.post('/mark-streak', protect, markDailyStreak);
 

@@ -1,27 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Trophy, Clock, Target, Loader2, Search, CheckCircle2 } from 'lucide-react';
+import { X, User, Trophy, Clock, Target, Loader2, Search, CheckCircle2, RefreshCcw } from 'lucide-react';
 
 const AdminQuizAttendees = ({ quizId, onClose, user }) => {
   const [attendees, setAttendees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  const fetchAttendees = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}/attendees`, config);
+      setAttendees(res.data);
+    } catch (err) {
+      console.error("Failed to fetch attendees", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAttendees = async () => {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}/attendees`, config);
-        setAttendees(res.data);
-      } catch (err) {
-        console.error("Failed to fetch attendees", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchAttendees();
   }, [quizId, user.token]);
+
+  const handleReset = async (userId) => {
+     if (!window.confirm("Are you sure you want to allow this student to re-attempt the quiz? This will delete their current record.")) return;
+     
+     try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}/attempts/${userId}`, config);
+        alert("Attempt reset! The student can now participate again.");
+        fetchAttendees(); // Refresh list
+     } catch (err) {
+        alert("Reset failed: " + (err.response?.data?.message || err.message));
+     }
+  };
 
   const filtered = attendees.filter(a => 
     a.user?.name?.toLowerCase().includes(search.toLowerCase()) || 
@@ -126,14 +140,20 @@ const AdminQuizAttendees = ({ quizId, onClose, user }) => {
                        </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-right min-w-[140px]">
-                       <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Completion Date</p>
-                          <p className="text-xs font-black text-slate-900 dark:text-white italic mt-0.5">{new Date(attempt.createdAt).toLocaleDateString()}</p>
-                       </div>
-                       <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
-                          <CheckCircle2 size={18} />
-                       </div>
+                    <div className="flex items-center gap-6">
+                        <div className="text-right">
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Completion</p>
+                           <p className="text-xs font-black text-slate-900 dark:text-white italic mt-0.5">{new Date(attempt.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        
+                        <button 
+                          onClick={() => handleReset(attempt.user._id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl border border-rose-500/20 transition-all group/reset shadow-sm hover:shadow-rose-500/20 active:scale-95"
+                          title="Reset Attempt - Allow Re-participation"
+                        >
+                           <RefreshCcw size={14} className="group-hover/reset:rotate-180 transition-transform duration-500" />
+                           <span className="text-[10px] font-bold uppercase tracking-widest">Reset</span>
+                        </button>
                     </div>
                   </motion.div>
                 ))}
