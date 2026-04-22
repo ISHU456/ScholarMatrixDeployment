@@ -1,6 +1,6 @@
-# ScholarMatrixDeployment - Next-Gen Secure Learning Ecosystem
+# ScholarMatrix - Next-Gen Secure Learning Ecosystem
 
-ScholarMatrixDeployment is a high-performance, full-stack Learning Management System (LMS) built with the MERN stack. It prioritizes advanced security through biometric authentication and geofencing, while engaging users through a robust gamification engine.
+ScholarMatrix is a high-performance, full-stack Learning Management System (LMS) built with the MERN stack. It prioritizes advanced security through biometric authentication and geofencing, while engaging users through a robust gamification engine.
 
 ---
 
@@ -35,8 +35,8 @@ ScholarMatrixDeployment is a high-performance, full-stack Learning Management Sy
 ### 2. Installation
 Clone the repository and install dependencies from the root:
 ```bash
-git clone https://github.com/ISHU456/ScholarMatrixDeployment.git
-cd ScholarMatrixDeployment
+git clone https://github.com/ISHU456/ScholarMatrix.git
+cd ScholarMatrix
 npm install
 ```
 
@@ -76,4 +76,4 @@ docker-compose up --build
 
 ---
 
-> *ScholarMatrixDeployment was designed to bridge the gap between education and high-tier security protocols.*
+> *ScholarMatrix was designed to bridge the gap between education and high-tier security protocols.*

@@ -121,7 +121,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
               <Star size={18} className="fill-white/20" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-400 dark:to-orange-400 uppercase tracking-tight">
-              ScholarMatrixDeployment
+              ScholarMatrix
             </span>
 
           </Link>
@@ -336,7 +336,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                   <div className="bg-amber-500 text-white p-2 rounded-xl">
                     <Star size={18} className="fill-white/20" />
                   </div>
-                  <span className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter">ScholarMatrixDeployment</span>
+                  <span className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter">ScholarMatrix</span>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 hover:text-gray-600">
                   <X size={24} />

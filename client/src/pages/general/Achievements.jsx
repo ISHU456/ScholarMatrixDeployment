@@ -69,7 +69,7 @@ const Achievements = () => {
       id: 'level_5_climber',
       title: 'Level 5 Climber',
       requirement: 'Reach Level 5',
-      meaning: 'Marks a significant milestone in your learning journey as you progress through the ScholarMatrixDeployment ranks.',
+      meaning: 'Marks a significant milestone in your learning journey as you progress through the ScholarMatrix ranks.',
       icon: Rocket,
       color: 'text-indigo-500',
       bgColor: 'bg-indigo-500/10',
@@ -228,7 +228,7 @@ const Achievements = () => {
             <div>
               <h2 className="text-3xl font-semibold uppercase tracking-tight mb-6">How to Earn XP?</h2>
               <p className="text-white/80 font-medium mb-10 leading-relaxed">
-                Experience points (XP) are awarded for every productive action you take in ScholarMatrixDeployment. 
+                Experience points (XP) are awarded for every productive action you take in ScholarMatrix. 
                 Consistent participation not only increases your level but also prepares you for exams.
               </p>
               <div className="space-y-4">

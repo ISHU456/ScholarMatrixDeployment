@@ -1,7 +1,7 @@
 {
-  "name": "scholarmatrixdeployment-server",
+  "name": "scholarmatrix-server",
   "version": "1.0.0",
-  "description": "ScholarMatrixDeployment Backend API",
+  "description": "ScholarMatrix Backend API",
   "main": "index.js",
   "type": "module",
   "scripts": {
