@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Save, X, Brain, Clock, 
-  Target, Zap, Shield, HelpCircle, ChevronDown, ChevronUp 
+  Target, Zap, Shield, HelpCircle, Loader2 
 } from 'lucide-react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
-const QuizGenerator = ({ onClose, onSave }) => {
+const QuizGenerator = ({ onClose, onSave, quizId }) => {
   const { user } = useSelector(state => state.auth);
   const [quizForm, setQuizForm] = useState({
     title: '',
@@ -27,6 +27,40 @@ const QuizGenerator = ({ onClose, onSave }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+
+  useEffect(() => {
+    if (quizId) {
+      const fetchQuiz = async () => {
+        setIsLoading(true);
+        try {
+          const config = { headers: { Authorization: `Bearer ${user.token}` } };
+          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}`, config);
+          
+          if (res.data && res.data.questions && Array.isArray(res.data.questions)) {
+            res.data.questions = res.data.questions.map(q => {
+              const definitiveText = q.question || q.text || q.statement || q.questionText || q.q || '';
+              const normalizedQ = { ...q, question: definitiveText };
+              delete normalizedQ.text;
+              delete normalizedQ.statement;
+              delete normalizedQ.questionText;
+              delete normalizedQ.q;
+              return normalizedQ;
+            });
+            setQuizForm(res.data);
+          } else {
+            setQuizForm(res.data);
+          }
+        } catch (err) {
+          console.error("Failed to fetch quiz data:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchQuiz();
+    }
+  }, [quizId, user.token]);
 
   const addQuestion = () => {
     setQuizForm({
@@ -57,14 +91,49 @@ const QuizGenerator = ({ onClose, onSave }) => {
     setIsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, quizForm, config);
-      alert("Neural Quiz Node Deployed!");
+      if (quizId) {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}`, quizForm, config);
+        alert("Quiz updated successfully!");
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, quizForm, config);
+        alert("Quiz created successfully!");
+      }
       if (onSave) onSave();
       if (onClose) onClose();
     } catch (err) {
-      alert("Deployment failure: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAiGenerate = async () => {
+    if (!aiPrompt) return alert("Please enter a topic for AI generation.");
+    setIsGenerating(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/generate-quiz`, { 
+        topic: aiPrompt,
+        count: 5 
+      }, config);
+      
+      if (Array.isArray(res.data)) {
+        setQuizForm({
+          ...quizForm,
+          title: aiPrompt + " Quiz",
+          questions: res.data.map(q => ({
+            question: q.question,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation || `Explanation for ${aiPrompt} question.`
+          }))
+        });
+        alert("5 AI questions generated!");
+      }
+    } catch (err) {
+      alert("AI Generation failed: " + err.message);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -87,8 +156,8 @@ const QuizGenerator = ({ onClose, onSave }) => {
               <Brain size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white uppercase tracking-tighter">Quiz Generator Core</h2>
-              <p className="text-xs text-indigo-400 font-bold uppercase tracking-wide mt-1">Configure Logic & Rewards</p>
+              <h2 className="text-xl font-semibold text-white uppercase tracking-tighter">{quizId ? 'Edit Quiz' : 'Create New Quiz'}</h2>
+              <p className="text-xs text-indigo-400 font-bold uppercase tracking-wide mt-1">{quizId ? 'Modify quiz settings' : 'Configure questions and rewards'}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-2xl text-gray-500 transition-all">
@@ -97,7 +166,6 @@ const QuizGenerator = ({ onClose, onSave }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-          {/* Basic Config */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
               <div>
@@ -108,51 +176,77 @@ const QuizGenerator = ({ onClose, onSave }) => {
                   value={quizForm.title}
                   onChange={e => setQuizForm({...quizForm, title: e.target.value})}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                  placeholder="e.g. Advanced Neural Architectures"
+                  placeholder="e.g. Basic Mathematics"
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Description</label>
                 <textarea 
-                  value={quizForm.description}
+                  value={quizForm.description || ''}
                   onChange={e => setQuizForm({...quizForm, description: e.target.value})}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all h-24 resize-none"
-                  placeholder="Briefly describe the parameters..."
+                  placeholder="What is this quiz about?"
                 />
+              </div>
+              <div className="p-6 rounded-3xl bg-indigo-600/5 border border-indigo-500/20 flex flex-col md:flex-row items-center gap-4">
+                 <div className="flex-1">
+                    <label className="block text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-2">AI Quiz Generator</label>
+                    <input 
+                      type="text" 
+                      value={aiPrompt}
+                      onChange={e => setAiPrompt(e.target.value)}
+                      placeholder="Enter a topic (e.g. JavaScript)..."
+                      className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-indigo-500 transition-all"
+                    />
+                 </div>
+                 <button 
+                   type="button"
+                   onClick={handleAiGenerate}
+                   disabled={isGenerating}
+                   className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-indigo-500 disabled:opacity-50 transition-all flex items-center gap-2 whitespace-nowrap self-end md:self-auto"
+                 >
+                   {isGenerating ? <Loader2 className="animate-spin" size={14} /> : <Zap size={14} />} 
+                   {isGenerating ? 'Generating...' : 'AI Generate'}
+                 </button>
               </div>
             </div>
             <div className="bg-white/5 rounded-3xl p-6 border border-white/5 space-y-6">
-               <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wide flex items-center gap-2"><Zap size={14}/> Reward Logic</h3>
-               <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase mb-2 block">Base Coins</label>
-                    <input type="number" value={quizForm.coinsReward.base} onChange={e => setQuizForm({...quizForm, coinsReward: {...quizForm.coinsReward, base: parseInt(e.target.value)}})} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase mb-2 block">Ideal Time (Min)</label>
-                    <input type="number" value={quizForm.idealTime} onChange={e => setQuizForm({...quizForm, idealTime: parseInt(e.target.value)})} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none" />
-                  </div>
-                  <div className="p-4 rounded-2xl bg-indigo-600/10 border border-indigo-500/20">
-                     <p className="text-xs font-semibold text-gray-500 uppercase leading-relaxed uppercase italic tracking-wide">Speed Bonus Active: Users faster than ideal time receive {quizForm.coinsReward.speedBonusMultiplier}x multiplier.</p>
-                  </div>
-               </div>
+                <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wide flex items-center gap-2"><Zap size={14}/> Reward Settings</h3>
+                <div className="space-y-4">
+                   <div>
+                      <label className="text-xs font-semibold text-gray-400 uppercase mb-2 block">Reward Coins</label>
+                      <input 
+                        type="number" 
+                        value={quizForm.totalPoints} 
+                        onChange={e => setQuizForm({...quizForm, totalPoints: parseInt(e.target.value)})} 
+                        className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none" 
+                      />
+                   </div>
+                   <div>
+                     <label className="text-xs font-semibold text-gray-400 uppercase mb-2 block">Ideal Time (Min)</label>
+                     <input type="number" value={quizForm.idealTime} onChange={e => setQuizForm({...quizForm, idealTime: parseInt(e.target.value)})} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none" />
+                   </div>
+                   <div>
+                     <label className="text-xs font-semibold text-gray-400 uppercase mb-2 block">Time Limit (Min)</label>
+                     <input type="number" value={quizForm.timeLimit} onChange={e => setQuizForm({...quizForm, timeLimit: parseInt(e.target.value)})} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none" />
+                   </div>
+                </div>
             </div>
           </div>
 
           <div className="h-px bg-white/5" />
 
-          {/* Questions List */}
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white uppercase tracking-wide flex items-center gap-3">
-                <HelpCircle size={18} className="text-indigo-500" /> Question Blocks
+                <HelpCircle size={18} className="text-indigo-500" /> Questions
               </h3>
               <button 
                 type="button"
                 onClick={addQuestion}
                 className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wide shadow-lg hover:bg-indigo-500 transition-all flex items-center gap-2"
               >
-                <Plus size={14} /> Add Block
+                <Plus size={14} /> Add Question
               </button>
             </div>
 
@@ -173,30 +267,28 @@ const QuizGenerator = ({ onClose, onSave }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-6">
-                      <div>
+                       <div>
                         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block">Question {qIdx + 1}</label>
-                        <input 
-                          type="text" 
+                        <textarea 
                           required
-                          value={q.question}
+                          value={q.question || ''}
                           onChange={e => handleQuestionChange(qIdx, 'question', e.target.value)}
-                          className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3.5 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                          placeholder="State the inquiry..."
+                          className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3.5 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all h-24 resize-none"
                         />
                       </div>
                       <div>
                         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block">Explanation (Optional)</label>
                         <textarea 
-                          value={q.explanation}
+                          value={q.explanation || ''}
                           onChange={e => handleQuestionChange(qIdx, 'explanation', e.target.value)}
                           className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-xs font-bold text-white outline-none focus:border-indigo-500 transition-all h-20 resize-none"
-                          placeholder="Provide logic for correct answer..."
+                          placeholder="Why is this answer correct?"
                         />
                       </div>
                    </div>
 
                    <div className="space-y-4">
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Response Multi-Choice</label>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Options (Select the correct one)</label>
                       {q.options.map((opt, oIdx) => (
                         <div key={oIdx} className="flex items-center gap-3">
                           <button 
@@ -223,26 +315,25 @@ const QuizGenerator = ({ onClose, onSave }) => {
           </div>
         </form>
 
-        {/* Footer */}
         <div className="px-8 py-6 border-t border-white/5 bg-white/5 flex items-center justify-between">
            <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
                  <Target size={18} className="text-indigo-400" />
-                 <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wide">{quizForm.questions.length} Question Nodes</span>
+                 <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wide">{quizForm.questions.length} Questions</span>
               </div>
               <div className="flex items-center gap-3">
                  <Clock size={18} className="text-orange-400" />
-                 <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wide">{quizForm.timeLimit} Min Protocol</span>
+                 <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wide">{quizForm.timeLimit} Min</span>
               </div>
            </div>
            <div className="flex items-center gap-4">
-              <button onClick={onClose} className="px-8 py-4 rounded-2xl text-gray-400 text-xs font-semibold uppercase tracking-wide hover:text-white transition-all">Abort</button>
+              <button onClick={onClose} className="px-8 py-4 rounded-2xl text-gray-400 text-xs font-semibold uppercase tracking-wide hover:text-white transition-all">Cancel</button>
               <button 
                 onClick={handleSubmit}
                 disabled={isLoading}
                 className="px-10 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-2xl text-xs font-semibold uppercase tracking-wide shadow-xl shadow-indigo-600/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50"
               >
-                {isLoading ? <Zap className="animate-spin" size={16} /> : <Save size={16} />} Deploy Quiz Node
+                {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} {quizId ? 'Save Changes' : 'Create Quiz'}
               </button>
            </div>
         </div>

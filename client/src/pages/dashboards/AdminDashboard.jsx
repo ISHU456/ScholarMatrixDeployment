@@ -41,6 +41,9 @@ const AdminDashboard = () => {
     deptPopulation: []
   });
   const [isMounted, setIsMounted] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
+  const [editingQuizId, setEditingQuizId] = useState(null);
+  const [quizGenOpen, setQuizGenOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,6 +69,27 @@ const AdminDashboard = () => {
     }
   }, [user.token]);
 
+  const fetchQuizzes = useCallback(async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, config);
+      setQuizzes(res.data);
+    } catch (err) {
+      console.error("Failed to fetch quizzes");
+    }
+  }, [user.token]);
+
+  const handleDeleteQuiz = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this quiz?")) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${id}`, config);
+      setQuizzes(quizzes.filter(q => q._id !== id));
+    } catch (err) {
+      alert("Delete failed: " + err.message);
+    }
+  };
+
   useEffect(() => {
     // Initial data fetch to clear main loader
     fetchStats().then(() => {
@@ -80,7 +104,10 @@ const AdminDashboard = () => {
         const interval = setInterval(fetchStats, 60000);
         return () => clearInterval(interval);
     }
-  }, [activeTab, fetchStats]);
+    if (activeTab === 'quizzes') {
+        fetchQuizzes();
+    }
+  }, [activeTab, fetchStats, fetchQuizzes]);
 
   // Resizable Sidebar Logic
   const startResizing = useCallback(() => setIsResizing(true), []);
@@ -116,6 +143,7 @@ const AdminDashboard = () => {
     { id: 'courses', icon: Book, label: 'Academic Lattice' },
     { id: 'global-alerts', icon: Bell, label: 'Global Broadcasts' },
     { id: 'results-hub', icon: TrendingUp, label: 'Results & Transcripts' },
+    { id: 'quizzes', icon: Brain, label: 'Quiz Management' },
     { id: 'batch-finalization', icon: CheckCircle, label: 'Batch Finalization' },
     { id: 'access-governance', icon: Shield, label: 'Access Governance' },
     { id: 'ai-management', icon: BrainCircuit, label: 'AI Management' },
@@ -459,6 +487,70 @@ const AdminDashboard = () => {
           <motion.div key="monthly-reg" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <MonthlyRegister user={user} onPersistChange={() => {}} />
           </motion.div>
+        ) : activeTab === 'quizzes' ? (
+          <motion.div key="quizzes" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white uppercase">Quiz Management</h2>
+                <p className="text-xs text-indigo-500 font-bold uppercase tracking-wide mt-1">Manage and edit platform quizzes</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="px-6 py-2.5 bg-indigo-600/10 text-indigo-600 rounded-xl text-xs font-bold uppercase tracking-wide border border-indigo-500/20">
+                   {quizzes.length} Quizzes Active
+                </div>
+                <button 
+                  onClick={() => setQuizGenOpen(true)}
+                  className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wide shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2 active:scale-95"
+                >
+                  <Plus size={16} /> Create Quiz
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quizzes.map(q => (
+                <div key={q._id} className="bg-white dark:bg-[#080c14] p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800/60 shadow-sm hover:shadow-2xl transition-all">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center"><Brain size={24}/></div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">{q.title}</h3>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mt-1">{q.category}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 mb-8">
+                    <div className="flex items-center gap-2"><Target size={14} className="text-slate-400"/><span className="text-xs font-bold text-slate-500">{q.totalPoints} PTS</span></div>
+                    <div className="flex items-center gap-2"><Clock size={14} className="text-slate-400"/><span className="text-xs font-bold text-slate-500">{q.timeLimit} MIN</span></div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-6">
+                     <button 
+                       onClick={() => navigate(`/quiz-arena/${q._id}`)}
+                       className="flex-1 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wide hover:bg-indigo-600 hover:text-white transition-all border border-indigo-500/10"
+                     >
+                       Preview
+                     </button>
+                     <button 
+                       onClick={() => setEditingQuizId(q._id)}
+                       className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"
+                     >
+                       <Edit size={16}/>
+                     </button>
+                     <button 
+                       onClick={() => handleDeleteQuiz(q._id)}
+                       className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all"
+                     >
+                       <Trash2 size={16}/>
+                     </button>
+                  </div>
+                </div>
+              ))}
+              {quizzes.length === 0 && (
+                <div className="col-span-full p-20 text-center glass rounded-[3rem] border border-gray-100 dark:border-gray-800">
+                  <Brain size={48} className="mx-auto text-indigo-500 mb-6 animate-pulse" />
+                  <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quiz Registry</h3>
+                  <p className="text-xs font-semibold text-gray-400 mt-4 max-w-md mx-auto leading-relaxed">Currently no quizzes are deployed in the system.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
         ) : activeTab === 'system' ? (
              <motion.div key="system" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                <AdminSystemSettings user={user} />
@@ -482,6 +574,10 @@ const AdminDashboard = () => {
           />
         )}
       </AnimatePresence>
+       <AnimatePresence>
+         {quizGenOpen && <QuizGenerator onClose={() => setQuizGenOpen(false)} onSave={fetchQuizzes} />}
+         {editingQuizId && <QuizGenerator quizId={editingQuizId} onClose={() => setEditingQuizId(null)} onSave={fetchQuizzes} />}
+       </AnimatePresence>
     </div>
   );
 };
