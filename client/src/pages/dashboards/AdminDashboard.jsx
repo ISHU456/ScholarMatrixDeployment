@@ -169,7 +169,7 @@ const AdminDashboard = () => {
     { id: 'batch-finalization', icon: CheckCircle, label: 'Batch Finalization' },
     { id: 'access-governance', icon: Shield, label: 'Access Governance' },
     { id: 'ai-management', icon: BrainCircuit, label: 'AI Management' },
-    { id: 'rewards', icon: ShoppingBag, label: 'Reward Fulfillment' },
+    { id: 'rewards', icon: ShoppingBag, label: 'Order Section' },
     { id: 'system', icon: Settings, label: 'System Settings' },
   ];
 

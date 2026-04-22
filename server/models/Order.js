@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema({
   prize: { type: mongoose.Schema.Types.ObjectId, ref: 'Prize', required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'processing', 'delivered', 'cancelled'], 
+    enum: ['pending', 'approved', 'in progress', 'delivered', 'rejected'], 
     default: 'pending' 
   },
   cost: { type: Number, required: true }, // Coins at time of order

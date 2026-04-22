@@ -50,8 +50,9 @@ const AdminRewardFulfillment = ({ user }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'delivered': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-      case 'processing': return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
-      case 'cancelled': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
+      case 'approved': return 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20';
+      case 'in progress': return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+      case 'rejected': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
       default: return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
     }
   };
@@ -61,7 +62,7 @@ const AdminRewardFulfillment = ({ user }) => {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white uppercase tracking-tighter flex items-center gap-3 italic">
-            <ShoppingBag className="text-indigo-600" size={24} /> Reward Fulfillment Hub
+            <ShoppingBag className="text-indigo-600" size={24} /> Order Section
           </h2>
           <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mt-1 italic">Governing institutional asset distribution and redemption protocols.</p>
         </div>
@@ -83,10 +84,11 @@ const AdminRewardFulfillment = ({ user }) => {
             className="px-6 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800/60 rounded-2xl outline-none focus:ring-2 ring-indigo-500/20 transition-all font-semibold text-xs uppercase tracking-wide text-slate-900 dark:text-white cursor-pointer"
           >
             <option value="all">All Transmissions</option>
-            <option value="pending">Pending Sync</option>
-            <option value="processing">Processing</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="in progress">In Progress</option>
             <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="rejected">Rejected</option>
           </select>
           <button 
             onClick={fetchOrders}
@@ -172,9 +174,10 @@ const AdminRewardFulfillment = ({ user }) => {
                           className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800/60 rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 outline-none focus:ring-1 ring-indigo-500/30 transition-all cursor-pointer"
                         >
                           <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
+                          <option value="approved">Approved</option>
+                          <option value="in progress">In Progress</option>
                           <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
+                          <option value="rejected">Rejected</option>
                         </select>
                       </td>
                     </tr>
