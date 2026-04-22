@@ -63,6 +63,9 @@ const AdminDashboard = () => {
       setStats(res.data);
     } catch (err) {
       console.error("Failed to fetch statistics");
+    }
+  }, [user.token]);
+
   useEffect(() => {
     // Initial data fetch to clear main loader
     fetchStats().then(() => {
