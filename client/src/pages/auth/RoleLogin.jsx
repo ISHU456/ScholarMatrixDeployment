@@ -48,6 +48,21 @@ const RoleLogin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, isLoading, isError, isSuccess, message } = useSelector(state => state.auth);
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/public/settings`);
+        setSettings(data);
+      } catch (err) {
+        console.error("Failed to load global settings.");
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const registrationOpen = settings?.registrationOpen ?? true;
 
   // 1. Redirection if user is already logged in
   useEffect(() => {
@@ -198,7 +213,11 @@ const RoleLogin = () => {
 
                 
                 <p className="text-center text-sm text-gray-600 dark:text-gray-400 font-medium pt-2">
-                  New to the platform? <button type="button" onClick={() => { setView('register'); setStep(1); }} className="text-primary-600 hover:text-primary-700 transition-colors ml-1">Register Now</button>
+                  New to the platform? {registrationOpen ? (
+                    <button type="button" onClick={() => { setView('register'); setStep(1); }} className="text-primary-600 hover:text-primary-700 transition-colors ml-1">Register Now</button>
+                  ) : (
+                    <span className="text-rose-500 ml-1 font-bold italic tracking-tighter">Enrollment Portal Restricted</span>
+                  )}
                 </p>
               </motion.form>
             )}

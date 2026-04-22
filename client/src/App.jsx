@@ -199,6 +199,41 @@ const AppContent = () => {
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/public/settings`);
+        setSettings(data);
+      } catch (err) {
+        console.error("Failed to load global settings.");
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  if (settings?.maintenanceMode && user?.role !== 'admin') {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[#030712] text-white p-10 text-center">
+        <div className="w-24 h-24 rounded-[32px] bg-red-600/10 text-red-600 flex items-center justify-center shadow-2xl shadow-red-600/20 mb-10 border border-red-500/20">
+          <Shield size={48} className="animate-pulse" />
+        </div>
+        <h1 className="text-5xl font-semibold uppercase tracking-tighter mb-4 italic">System Under Maintenance</h1>
+        <p className="text-slate-500 max-w-lg uppercase text-xs font-bold tracking-[0.2em] leading-loose mb-12">
+          The institutional core is currently undergoing synchronization. All non-essential nodes are restricted. 
+          Access is reserved for level 5 administrators.
+        </p>
+        <button 
+          onClick={() => window.location.href = '/login'}
+          className="px-8 py-4 bg-white text-black rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-200 transition-all"
+        >
+          Administrator Portal
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-[#030712] transition-colors duration-300 overflow-hidden">
         <div className="flex flex-col h-full">

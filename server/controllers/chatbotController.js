@@ -2,6 +2,7 @@ import Groq from "groq-sdk";
 import User from "../models/User.js";
 import Chat from "../models/Chat.js";
 import AiCreditLog from "../models/AiCreditLog.js";
+import SystemSettings from "../models/SystemSettings.js";
 import fs from "fs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -132,7 +133,8 @@ export const grantAiCredits = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    user.credits = 10;
+    const settings = await SystemSettings.findOne();
+    user.credits = settings?.aiDailyCredits || 10;
     user.aiCreditsRequested = false;
     await user.save();
     res.json({ message: "AI Credits granted successfully." });
@@ -147,7 +149,8 @@ export const grantAiCreditsByEmail = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    user.credits = amount !== undefined ? parseInt(amount) : 10;
+    const settings = await SystemSettings.findOne();
+    user.credits = amount !== undefined ? parseInt(amount) : (settings?.aiDailyCredits || 10);
     user.aiCreditsRequested = false;
     await user.save();
     res.json({ message: "Credits granted success.", currentCredits: user.credits });

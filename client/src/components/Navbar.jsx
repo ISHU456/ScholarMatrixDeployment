@@ -124,7 +124,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
               <Star size={18} className="fill-white/20" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-400 dark:to-orange-400 uppercase tracking-tight">
-              ScholarMatrix
+              {settings?.institutionName || 'ScholarMatrix'}
             </span>
 
           </Link>

@@ -8,6 +8,7 @@ import generateToken from '../utils/generateToken.js';
 import { cloudinary } from '../config/cloudinary.js';
 import mongoose from 'mongoose';
 import MFASession from '../models/MFASession.js';
+import SystemSettings from '../models/SystemSettings.js';
 import crypto from 'crypto';
 
 // Verify college email domain helper
@@ -25,6 +26,12 @@ export const registerUser = async (req, res) => {
       enrollmentNumber, batch, department, year, semester, rollNumber,
       employeeId, securityQuestion, securityAnswer, descriptors, profilePic
     } = req.body;
+    
+    // Check if registration is open
+    const settings = await SystemSettings.findOne();
+    if (settings && !settings.registrationOpen && role !== 'admin') {
+      return res.status(403).json({ message: 'Enrollment Portal is currently restricted by administration.' });
+    }
 
     let finalProfilePic = profilePic;
     if (profilePic && profilePic.startsWith('data:image')) {
