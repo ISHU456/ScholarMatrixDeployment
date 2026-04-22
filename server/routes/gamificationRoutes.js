@@ -11,7 +11,10 @@ import {
   updateQuiz,
   deleteQuiz,
   markDailyStreak,
-  getQuizAttendees
+  getQuizAttendees,
+  resetAllQuizAttempts,
+  toggleQuizStatus,
+  resetQuizAttempt
 } from '../controllers/gamificationController.js';
 
 const router = express.Router();
