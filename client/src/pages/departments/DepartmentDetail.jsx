@@ -454,7 +454,7 @@ const DepartmentDetail = () => {
                   <div>
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                        <div>
-                          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter leading-none mb-3">Academic <span className="text-primary-600">Command</span></h3>
+                          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter leading-none mb-3">Our <span className="text-primary-600">Faculty</span></h3>
                           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Distinguished Faculty & Subject Matter Experts</p>
                        </div>
                        <button className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-semibold text-xs uppercase tracking-wide hover:bg-primary-600 hover:text-white transition-all">
@@ -464,10 +464,10 @@ const DepartmentDetail = () => {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                       {(dept.facultyList?.length > 0 ? dept.facultyList : [
-                        { name: 'Dr. Amitabh Sharma', designation: 'HOD / Chief Research Envoy', expertise: 'Quantum Computing • Neural Networks', email: 'sharma.hod@university.edu', color: 'bg-indigo-600' },
-                        { name: 'Dr. Priya Venkatesh', designation: 'Professor • Lead Scholar', expertise: 'Cyber Defense • Data Privacy', email: 'p.venkatesh@university.edu', color: 'bg-emerald-600' },
-                        { name: 'Dr. Rajiv Malhotra', designation: 'Asst. Professor • Industry Liaison', expertise: 'Cloud-Native Systems • DevOps', email: 'malhotra.r@university.edu', color: 'bg-primary-600' },
-                        { name: 'Dr. Ananya Iyer', designation: 'Senior Lecturer • R&D Curator', expertise: 'Blockchain Governance • Web3', email: 'iyer.a@university.edu', color: 'bg-amber-600' }
+                        { name: 'Dr. Amitabh Sharma', designation: 'Head of Department', expertise: 'AI & Machine Learning', email: 'sharma.hod@university.edu', color: 'bg-indigo-600' },
+                        { name: 'Dr. Priya Venkatesh', designation: 'Professor', expertise: 'Cyber Security • Data Privacy', email: 'p.venkatesh@university.edu', color: 'bg-emerald-600' },
+                        { name: 'Dr. Rajiv Malhotra', designation: 'Assistant Professor', expertise: 'Cloud Systems • DevOps', email: 'malhotra.r@university.edu', color: 'bg-primary-600' },
+                        { name: 'Dr. Ananya Iyer', designation: 'Senior Lecturer', expertise: 'Blockchain • Web3', email: 'iyer.a@university.edu', color: 'bg-amber-600' }
                       ]).map((fac, i) => (
                         <motion.div 
                           key={i}
@@ -486,7 +486,7 @@ const DepartmentDetail = () => {
                              
                              {/* Expert Badge */}
                              <div className="absolute -bottom-2 bg-white dark:bg-gray-800 px-4 py-1.5 rounded-full shadow-lg border border-gray-100 dark:border-gray-700">
-                                <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide whitespace-nowrap">Subject Elite</p>
+                                <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide whitespace-nowrap">Expert</p>
                              </div>
                           </div>
 
@@ -495,7 +495,7 @@ const DepartmentDetail = () => {
                             <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide mb-6">{fac.designation}</p>
                             
                             <div className="mt-auto pt-6 border-t border-gray-50 dark:border-gray-800 text-center">
-                               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Mastery Sectors</p>
+                               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Expertise</p>
                                <div className="flex flex-wrap justify-center gap-2">
                                   {fac.expertise.split(' • ').map(e => (
                                     <span key={e} className="px-3 py-1 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg text-[8.5px] font-semibold uppercase tracking-wide">{e}</span>
