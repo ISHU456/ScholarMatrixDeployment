@@ -42,7 +42,6 @@ import LiveClass from './pages/live/LiveClass';
 // General pages
 import Home from './pages/general/Home';
 import Profile from './pages/general/Profile';
-import Achievements from './pages/general/Achievements';
 import AITutor from './pages/general/AITutor';
 import AIMode from './pages/general/AIMode';
 import DepartmentSelection from './pages/general/DepartmentSelection';
@@ -338,16 +337,9 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
 
-          {/* Universal Protected Profile Page */}
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/achievements" element={
-            <ProtectedRoute>
-              <Achievements />
             </ProtectedRoute>
           } />
 

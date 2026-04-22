@@ -353,7 +353,6 @@ const StudentDashboard = () => {
     () => [
       { id: 'overview', icon: Home, label: 'Overview' },
       { id: 'progress', icon: Target, label: 'Progress' },
-      { id: 'achievements', icon: Trophy, label: 'Achievements' },
       { id: 'leaderboard', icon: Trophy, label: 'Leaderboard' },
     ],
     []
