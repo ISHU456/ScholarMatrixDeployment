@@ -243,13 +243,13 @@ thead th {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border-radius: 14px;
-  padding: 8px 16px;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  isolation: isolate;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.dark .ai-mode-button {
+  background: #0b0f19;
+  border: 1px solid rgba(139, 92, 246, 0.4);
 }
 
 .ai-mode-button::before {
@@ -258,19 +258,19 @@ thead th {
   inset: -1px;
   background: linear-gradient(90deg, 
     transparent 0%, 
-    rgba(59, 130, 246, 0.5) 25%, 
-    rgba(139, 92, 246, 0.8) 50%, 
-    rgba(245, 158, 11, 0.5) 75%, 
+    rgba(59, 130, 246, 0.3) 25%, 
+    rgba(139, 92, 246, 0.5) 50%, 
+    rgba(245, 158, 11, 0.3) 75%, 
     transparent 100%
   );
   background-size: 200% 100%;
-  animation: border-beam 3s linear infinite;
-  z-index: -1;
+  animation: border-beam 4s linear infinite;
+  z-index: 1;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
-  padding: 1.5px;
+  padding: 2px;
   border-radius: 14px;
 }
 

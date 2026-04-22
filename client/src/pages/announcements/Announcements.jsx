@@ -115,7 +115,51 @@ const Announcements = () => {
             <div className="flex flex-col gap-6 pt-8 pb-24">
               {/* PREMIUM PLACEHOLDERS */}
               <div className="space-y-6">
-                {/* SIDEBAR CONTENT REMOVED AS REQUESTED */}
+                {/* Guidelines Section */}
+                <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-8 shadow-xl">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 mb-6">
+                    <ShieldCheck size={24} />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight mb-4">Community Rules</h3>
+                  <ul className="space-y-4">
+                    {[
+                      { icon: <Heart size={14} className="text-rose-500" />, text: "Be kind and respectful to others." },
+                      { icon: <MessageSquare size={14} className="text-blue-500" />, text: "Share useful and correct information." },
+                      { icon: <ShieldCheck size={14} className="text-emerald-500" />, text: "Keep the campus discussions clean." }
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="mt-1">{item.icon}</span>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 leading-relaxed">{item.text}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Quick Help Card */}
+                <div className="bg-gradient-to-br from-primary-600 to-indigo-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-primary-500/30">
+                  <h3 className="text-xl font-bold uppercase tracking-tight mb-2">Need Help?</h3>
+                  <p className="text-white/80 text-sm font-medium mb-6">If you have any questions about campus life or technical issues, we are here for you.</p>
+                  <button className="w-full py-4 bg-white text-primary-600 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-opacity-90 transition-all flex items-center justify-center gap-2">
+                    Contact Support <ArrowRight size={14} />
+                  </button>
+                </div>
+
+                {/* Academic Tips */}
+                <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-8">
+                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
+                    <Star size={14} className="text-amber-500" /> Success Tips
+                  </h3>
+                  <div className="space-y-6">
+                    <div className="group cursor-pointer">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">Check the feed daily for exam dates and holiday notices.</p>
+                      <div className="h-1 w-8 bg-gray-100 dark:bg-gray-800 rounded-full mt-3 group-hover:w-16 group-hover:bg-primary-500 transition-all" />
+                    </div>
+                    <div className="group cursor-pointer">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">Join study groups to learn faster with your friends.</p>
+                      <div className="h-1 w-8 bg-gray-100 dark:bg-gray-800 rounded-full mt-3 group-hover:w-16 group-hover:bg-primary-500 transition-all" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
