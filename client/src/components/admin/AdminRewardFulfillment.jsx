@@ -62,9 +62,9 @@ const AdminRewardFulfillment = ({ user }) => {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white uppercase tracking-tighter flex items-center gap-3 italic">
-            <ShoppingBag className="text-indigo-600" size={24} /> Order Section
+            <ShoppingBag className="text-indigo-600" size={24} /> Transaction Log
           </h2>
-          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mt-1 italic">Governing institutional asset distribution and redemption protocols.</p>
+          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mt-1 italic">Redemption History: Monitoring institutional asset distribution protocols.</p>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">

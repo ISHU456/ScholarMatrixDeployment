@@ -15,6 +15,7 @@ import AdminAiManagement from '../../components/admin/AdminAiManagement';
 import AdminAccessRequests from '../../components/admin/AdminAccessRequests';
 import AdminPendingTeachers from '../../components/admin/AdminPendingTeachers';
 import AdminRewardFulfillment from '../../components/admin/AdminRewardFulfillment';
+import AdminQuizAttendees from '../../components/admin/AdminQuizAttendees';
 import AttendanceManager from '../../components/teacher/AttendanceManager';
 import MonthlyRegister from '../../components/teacher/MonthlyRegister';
 import QuizArena from '../../components/student/QuizArena';
@@ -56,6 +57,7 @@ const AdminDashboard = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [activeQuizId, setActiveQuizId] = useState(null);
   const [editingQuizId, setEditingQuizId] = useState(null);
+  const [viewingAttendeesId, setViewingAttendeesId] = useState(null);
   const [quizGenOpen, setQuizGenOpen] = useState(false);
 
   useEffect(() => {
@@ -532,10 +534,16 @@ const AdminDashboard = () => {
                     <div className="flex items-center gap-2"><Target size={14} className="text-slate-400"/><span className="text-xs font-bold text-slate-500">{q.totalPoints} PTS</span></div>
                     <div className="flex items-center gap-2"><Clock size={14} className="text-slate-400"/><span className="text-xs font-bold text-slate-500">{q.timeLimit} MIN</span></div>
                   </div>
-                  <div className="flex items-center gap-2 mt-6">
+                  <div className="flex items-center gap-2 mt-6 flex-wrap">
+                     <button 
+                       onClick={() => setViewingAttendeesId(q._id)}
+                       className="flex-1 py-3 rounded-2xl bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+                     >
+                       Attendees
+                     </button>
                      <button 
                        onClick={() => navigate(`/quiz-arena/${q._id}`)}
-                       className="flex-1 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wide hover:bg-indigo-600 hover:text-white transition-all border border-indigo-500/10"
+                       className="flex-1 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wide hover:bg-indigo-600 hover:text-white transition-all border border-indigo-500/10"
                      >
                        Preview
                      </button>
@@ -593,6 +601,7 @@ const AdminDashboard = () => {
        <AnimatePresence>
          {quizGenOpen && <QuizGenerator onClose={() => setQuizGenOpen(false)} onSave={fetchQuizzes} />}
          {editingQuizId && <QuizGenerator quizId={editingQuizId} onClose={() => setEditingQuizId(null)} onSave={fetchQuizzes} />}
+         {viewingAttendeesId && <AdminQuizAttendees quizId={viewingAttendeesId} onClose={() => setViewingAttendeesId(null)} user={user} />}
        </AnimatePresence>
     </div>
   );

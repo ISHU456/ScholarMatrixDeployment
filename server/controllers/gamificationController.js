@@ -263,3 +263,15 @@ export const markDailyStreak = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const getQuizAttendees = async (req, res) => {
+    try {
+        const { quizId } = req.params;
+        const attempts = await QuizAttempt.find({ quiz: quizId })
+            .populate('user', 'name email rollNumber department semester profilePic')
+            .sort({ score: -1, timeTaken: 1 });
+        res.json(attempts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

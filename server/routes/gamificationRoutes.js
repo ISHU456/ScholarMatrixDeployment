@@ -10,7 +10,8 @@ import {
   getQuizDetails,
   updateQuiz,
   deleteQuiz,
-  markDailyStreak
+  markDailyStreak,
+  getQuizAttendees
 } from '../controllers/gamificationController.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get('/achievements', protect, getMyAchievements);
 router.get('/leaderboard', protect, getLeaderboard);
 router.get('/quizzes', protect, getQuizzes);
 router.get('/quizzes/:id', protect, getQuizDetails);
+router.get('/quizzes/:quizId/attendees', protect, admin, getQuizAttendees);
 router.post('/quizzes/submit', protect, submitQuiz);
 router.post('/mark-streak', protect, markDailyStreak);
 
