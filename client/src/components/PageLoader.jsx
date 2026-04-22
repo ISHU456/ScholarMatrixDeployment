@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 
-const PageLoader = ({ message = "Synchronizing Protocol" }) => {
+const PageLoader = ({ message = "Loading System" }) => {
   return (
     <div className="flex h-[60vh] min-h-[400px] w-full flex-col items-center justify-center bg-transparent relative overflow-hidden">
       {/* Decorative background pulses */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] animate-pulse" />
       </div>
 
       <div className="relative flex flex-col items-center">
@@ -17,7 +17,7 @@ const PageLoader = ({ message = "Synchronizing Protocol" }) => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 rounded-[1.5rem] border-2 border-primary-500/20 border-t-primary-500 border-r-primary-500/40 relative z-10"
+            className="w-20 h-20 rounded-[1.5rem] border-2 border-indigo-500/20 border-t-indigo-500 border-r-indigo-500/40 relative z-10"
           />
           
           {/* Center Logo */}
@@ -27,8 +27,8 @@ const PageLoader = ({ message = "Synchronizing Protocol" }) => {
             transition={{ duration: 0.5 }}
             className="absolute inset-0 flex items-center justify-center z-20"
           >
-            <div className="bg-amber-500 text-white p-2.5 rounded-xl shadow-lg shadow-amber-500/20">
-              <Star size={20} className="fill-white/20" />
+            <div className="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-600/20">
+              <LayoutGrid size={20} />
             </div>
           </motion.div>
 
@@ -36,7 +36,7 @@ const PageLoader = ({ message = "Synchronizing Protocol" }) => {
           <motion.div
             animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -inset-2 border border-primary-500/20 rounded-[2rem]"
+            className="absolute -inset-2 border border-indigo-500/20 rounded-[2rem]"
           />
         </div>
 
@@ -55,7 +55,7 @@ const PageLoader = ({ message = "Synchronizing Protocol" }) => {
                 key={i}
                 animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                className="w-1 h-1 rounded-full bg-primary-500"
+                className="w-1 h-1 rounded-full bg-indigo-500"
               />
             ))}
           </div>

@@ -25,9 +25,9 @@ const Announcements = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-5rem)] overflow-hidden bg-[#f8fafc] dark:bg-[#0b0f19] transition-colors duration-500">
-      <div className="h-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="h-full flex flex-col lg:flex-row gap-8">
+    <div className="min-h-screen lg:h-[calc(100vh-5rem)] overflow-y-auto lg:overflow-hidden bg-[#f8fafc] dark:bg-[#0b0f19] transition-colors duration-500">
+      <div className="h-full max-w-[1700px] mx-auto px-0 sm:px-6 lg:px-8 py-0 lg:py-6">
+        <div className="h-full flex flex-col lg:flex-row gap-0 lg:gap-8">
           
           {/* LEFT SIDEBAR - User Profile & Navigation */}
           <aside className="hidden lg:block w-[320px] shrink-0 h-full overflow-y-auto overflow-x-hidden custom-scrollbar pr-2">
@@ -91,7 +91,7 @@ const Announcements = () => {
           </aside>
 
           {/* MAIN CENTER FEED */}
-          <main className="flex-1 h-full max-w-[800px] min-w-0 w-full flex flex-col gap-8 mx-auto lg:mx-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-6 pt-8 pb-32">
+          <main className="flex-1 h-full max-w-[800px] min-w-0 w-full flex flex-col gap-8 mx-auto lg:mx-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 sm:px-6 pt-6 lg:pt-8 pb-32">
             {/* Announcement Banner */}
             <div className="relative h-64 rounded-[3rem] overflow-hidden shadow-2xl shadow-indigo-500/20 group">
               <img src="/banner.png" alt="Academic Feed" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
@@ -133,15 +133,6 @@ const Announcements = () => {
                       </li>
                     ))}
                   </ul>
-                </div>
-
-                {/* Quick Help Card */}
-                <div className="bg-gradient-to-br from-primary-600 to-indigo-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-primary-500/30">
-                  <h3 className="text-xl font-bold uppercase tracking-tight mb-2">Need Help?</h3>
-                  <p className="text-white/80 text-sm font-medium mb-6">If you have any questions about campus life or technical issues, we are here for you.</p>
-                  <button className="w-full py-4 bg-white text-primary-600 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-opacity-90 transition-all flex items-center justify-center gap-2">
-                    Contact Support <ArrowRight size={14} />
-                  </button>
                 </div>
 
                 {/* Academic Tips */}

@@ -60,9 +60,7 @@ const RoleLogin = () => {
           if (!user.faceRegistered) navigate('/face-registration', { state: { forced: true } });
           else navigate('/dashboard');
         }
-        else if (user.role === 'librarian') navigate('/librarian-dashboard');
         else if (user.role === 'hod') navigate('/hod-dashboard');
-        else if (user.role === 'parent') navigate('/parent-dashboard');
         else if (user.role === 'teacher') {
           if (!user.faceRegistered) navigate('/face-registration', { state: { forced: true } });
           else navigate('/faculty-dashboard');
@@ -97,9 +95,7 @@ const RoleLogin = () => {
           navigate('/dashboard');
         }
       }
-      else if (user.role === 'librarian') navigate('/librarian-dashboard');
       else if (user.role === 'hod') navigate('/hod-dashboard');
-      else if (user.role === 'parent') navigate('/parent-dashboard');
       else if (user.role === 'teacher') {
         if (!user.faceRegistered) {
           navigate('/face-registration', { state: { forced: true } });

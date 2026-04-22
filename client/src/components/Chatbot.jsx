@@ -263,7 +263,7 @@ const Chatbot = ({ variant = 'floating', className = '', noAutoScroll = false })
         >
           <motion.div layoutId="chatbot-icon" className="relative z-10 transition-colors">
             <AnimatePresence mode="wait">
-              {isOpen ? <X size={32} key="x" /> : <Bot size={32} key="bot" />}
+              {isOpen ? <X size={32} key="x" /> : <BrainCircuit size={32} key="bot" className="animate-pulse" />}
             </AnimatePresence>
           </motion.div>
           <motion.div 
@@ -289,7 +289,7 @@ const Chatbot = ({ variant = 'floating', className = '', noAutoScroll = false })
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-28 right-8 z-[2000] w-[400px] h-[600px] max-w-[95vw] max-h-[80vh] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.4)] rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-800"
+            className="fixed bottom-0 right-0 sm:bottom-28 sm:right-8 z-[2000] w-full h-full sm:w-[400px] sm:h-[600px] sm:max-w-[95vw] sm:max-h-[80vh] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.4)] sm:rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-800"
           >
             {chatWindow}
           </motion.div>

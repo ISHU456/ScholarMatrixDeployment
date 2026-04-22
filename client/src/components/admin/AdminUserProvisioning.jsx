@@ -106,7 +106,13 @@ const AdminUserManagement = ({ user }) => {
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6">
                             <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 w-full sm:w-auto">
                                 {['all', 'teacher', 'student', 'hod', 'admin'].map(r => (
-                                    <button key={r} onClick={() => setRole(r)}
+                                    <button key={r} onClick={() => {
+                                        setRole(r);
+                                        if (r !== 'student' && r !== 'all') {
+                                            setSelectedSem('all');
+                                            setSelectedSec('all');
+                                        }
+                                    }}
                                         className={`shrink-0 px-5 lg:px-6 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide border transition-all ${role === r ? 'bg-red-600 text-white border-transparent shadow-lg shadow-red-600/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-red-300'}`}>
                                         {r === 'all' ? 'All Roles' : `${r}s`}
                                     </button>

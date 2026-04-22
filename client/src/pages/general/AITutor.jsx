@@ -65,16 +65,6 @@ const AITutor = () => {
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-primary-600 to-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary-600/20 overflow-hidden relative group">
-            <div className="relative z-10">
-              <h3 className="text-lg font-semibold uppercase tracking-tight mb-2">Need Help?</h3>
-              <p className="text-xs font-bold opacity-80 mb-6 leading-relaxed">Our AI is fine-tuned to help you master your engineering subjects with ease.</p>
-              <button className="w-full py-3 bg-white text-primary-600 rounded-xl font-semibold text-xs uppercase tracking-wide hover:bg-gray-100 transition-all">
-                View Tutorial
-              </button>
-            </div>
-            <Sparkles size={120} className="absolute -bottom-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-500" />
-          </div>
         </div>
 
         {/* Chat Interface */}

@@ -13,9 +13,7 @@ const LoginPortal = () => {
     if (user) {
         if (user.role === 'admin') navigate('/admin-dashboard');
         else if (user.role === 'student') navigate('/dashboard');
-        else if (user.role === 'librarian') navigate('/librarian-dashboard');
         else if (user.role === 'hod') navigate('/hod-dashboard');
-        else if (user.role === 'parent') navigate('/parent-dashboard');
         else if (user.role === 'teacher') navigate('/faculty-dashboard');
     }
   }, [user, navigate]);
@@ -24,8 +22,6 @@ const LoginPortal = () => {
     { id: 'student', title: 'Student Portal', icon: GraduationCap, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/30', border: 'hover:border-blue-500/50 hover:shadow-blue-500/20' },
     { id: 'faculty', title: 'Faculty Portal', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/30', border: 'hover:border-indigo-500/50 hover:shadow-indigo-500/20' },
     { id: 'admin', title: 'Admin Portal', icon: Shield, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/30', border: 'hover:border-rose-500/50 hover:shadow-rose-500/20' },
-    { id: 'librarian', title: 'Library Portal', icon: BookOpen, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'hover:border-amber-500/50 hover:shadow-amber-500/20' },
-    { id: 'parent', title: 'Parent Portal', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'hover:border-emerald-500/50 hover:shadow-emerald-500/20' },
   ];
 
   return (

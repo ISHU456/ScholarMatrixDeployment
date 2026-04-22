@@ -154,17 +154,6 @@ const AdminDashboard = () => {
     };
   }, [isResizing, resize, stopResizing]);
 
-  const handleDeleteQuiz = async (id) => {
-    if (!window.confirm("Are you sure you want to decommission this Neural Arena? This action is irreversible.")) return;
-    try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${id}`, config);
-      setQuizzes(quizzes.filter(q => q._id !== id));
-    } catch (err) {
-      alert("Decommissioning failed: " + err.message);
-    }
-  };
-
   const menuItems = [
     { id: 'overview', icon: LayoutGrid, label: 'System Overview' },
     { id: 'users', icon: Users, label: 'User Management Hub' },
@@ -186,7 +175,7 @@ const AdminDashboard = () => {
 
   if (isLoading) return (
     <div className="flex min-h-[calc(100vh-73px)] items-center justify-center bg-slate-50 dark:bg-[#030712]">
-      <PageLoader message="Initializing Data Protocol" />
+      <PageLoader message="Loading System..." />
     </div>
   );
 
@@ -227,18 +216,6 @@ const AdminDashboard = () => {
               ))}
            </nav>
 
-           <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800/60 overflow-hidden">
-              <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 group hover:border-indigo-500/30 transition-all duration-500 cursor-help">
-                 <div className="flex items-center gap-3 mb-2">
-                    <Info size={14} className="text-indigo-500" />
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">System Health</p>
-                 </div>
-                 <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <motion.div initial={{ width: 0 }} animate={{ width: '92%' }} className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500" />
-                 </div>
-                 <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mt-2">Operational: 99.8%</p>
-              </div>
-           </div>
         </div>
 
         {/* Resizer Slider */}
@@ -584,10 +561,6 @@ const AdminDashboard = () => {
               )}
             </div>
           </motion.div>
-<<<<<<< HEAD
-=======
-
->>>>>>> 773977b (Institutional rebranding to ScholarMatrix, gamification updates, and UI enhancements)
         ) : activeTab === 'system' ? (
              <motion.div key="system" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                <AdminSystemSettings user={user} />

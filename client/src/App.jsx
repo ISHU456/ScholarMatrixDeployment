@@ -26,8 +26,6 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import StudentDashboard from './pages/dashboards/StudentDashboard';
 import FacultyDashboard from './pages/dashboards/FacultyDashboard';
 import HODDashboard from './pages/dashboards/HODDashboard';
-import LibrarianDashboard from './pages/dashboards/LibrarianDashboard';
-import ParentDashboard from './pages/dashboards/ParentDashboard';
 
 // Course pages
 import Courses from './pages/courses/Courses';
@@ -57,9 +55,14 @@ import AdminAiManagement from './pages/admin/AdminAiManagement';
 import AdminUserAiDetail from './pages/admin/AdminUserAiDetail';
 
 // Student / Gamified pages
+<<<<<<< HEAD
 import QuizArena from './components/student/QuizArena';
 import MasterArena from './pages/student/MasterArena';
 import SessionTracker from './components/student/SessionTracker';
+=======
+import QuizArenaPage from './pages/student/QuizArenaPage';
+import QuizArenaHub from './pages/student/QuizArenaHub';
+>>>>>>> e02b679 (Fix: Faculty and Admin visibility in User Management by resetting student-specific filters)
 
 // Result pages
 import ResultEntry from './pages/results/ResultEntry';
@@ -251,7 +254,7 @@ const AppContent = () => {
           } />
 
           <Route path="/admin-dashboard" element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin', 'hod']}>
               <AdminDashboard /> 
             </ProtectedRoute>
           } />
@@ -267,7 +270,7 @@ const AppContent = () => {
           } />
 
           <Route path="/faculty-dashboard" element={
-            <ProtectedRoute allowedRoles={['teacher']}>
+            <ProtectedRoute allowedRoles={['teacher', 'hod']}>
               <FacultyDashboard /> 
             </ProtectedRoute>
           } />
@@ -278,17 +281,6 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="/librarian-dashboard" element={
-            <ProtectedRoute allowedRoles={['librarian']}>
-              <LibrarianDashboard /> 
-            </ProtectedRoute>
-          } />
-
-          <Route path="/parent-dashboard" element={
-            <ProtectedRoute allowedRoles={['parent']}>
-              <ParentDashboard /> 
-            </ProtectedRoute>
-          } />
 
           {/* Universal Protected Live Class Route */}
           <Route path="/live-class/:classId" element={
@@ -300,6 +292,16 @@ const AppContent = () => {
           <Route path="/assignments" element={
             <ProtectedRoute>
               <Assignments />
+            </ProtectedRoute>
+          } />
+          <Route path="/quiz-arena/:quizId" element={
+            <ProtectedRoute allowedRoles={['student', 'admin']}>
+              <QuizArenaPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/quiz-arena-hub" element={
+            <ProtectedRoute allowedRoles={['student', 'admin']}>
+              <QuizArenaHub />
             </ProtectedRoute>
           } />
 

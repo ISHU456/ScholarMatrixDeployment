@@ -353,7 +353,6 @@ const StudentDashboard = () => {
     () => [
       { id: 'overview', icon: Home, label: 'Overview' },
       { id: 'progress', icon: Target, label: 'Progress' },
-      { id: 'quizzes', icon: Brain, label: 'Quiz Arena' },
       { id: 'achievements', icon: Trophy, label: 'Achievements' },
       { id: 'leaderboard', icon: Trophy, label: 'Leaderboard' },
     ],
@@ -703,7 +702,7 @@ const StudentDashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => setActiveTab('quizzes')}
+                onClick={() => navigate('/quiz-arena-hub')}
                 className="px-4 py-2 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-xs uppercase tracking-wide hover:opacity-90 transition"
               >
                 Jump to Quiz Arena
@@ -1033,7 +1032,7 @@ const StudentDashboard = () => {
                       <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">Short goals to level up</div>
                     </div>
                     <button
-                      onClick={() => setActiveTab('quizzes')}
+                      onClick={() => navigate('/quiz-arena-hub')}
                       className="px-3 py-2 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-xs uppercase tracking-wide hover:opacity-90 border border-gray-200 dark:border-gray-800"
                     >
                       Start Quiz
@@ -1148,7 +1147,7 @@ const StudentDashboard = () => {
                             Open Course
                           </button>
                           <button
-                            onClick={() => setActiveTab('quizzes')}
+                            onClick={() => navigate('/quiz-arena-hub')}
                             className="px-4 py-2 rounded-2xl font-semibold text-xs uppercase tracking-wide bg-gray-900 dark:bg-white text-white dark:text-gray-900 border border-gray-200 dark:border-gray-800 hover:opacity-90 transition"
                           >
                             Quiz
@@ -1162,55 +1161,6 @@ const StudentDashboard = () => {
             </motion.div>
           )}
 
-          {activeTab === 'quizzes' && (
-            <motion.div key="quizzes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-20">
-               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-3xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter italic">Quiz Arena Hub</h2>
-                    <p className="text-xs text-primary-600 font-bold uppercase tracking-wide mt-1 text-center md:text-left">Earn Neural Credits & Experience Nodes</p>
-                  </div>
-                  <div className="px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-2xl border border-emerald-500/10 text-xs font-bold uppercase tracking-wide">
-                     {availableQuizzes.length} Arenas Active
-                  </div>
-               </div>
-               
-               {availableQuizzes.length === 0 ? (
-                 <div className="p-12 text-center glass rounded-[3rem] border border-gray-100 dark:border-gray-800">
-                    <Brain size={48} className="mx-auto text-gray-300 mb-4 opacity-30" />
-                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest italic">No cognitive challenges currently deployed for your sector.</p>
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {availableQuizzes.map(q => (
-                      <div key={q._id} className="group relative bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl transition-all overflow-hidden cursor-pointer" onClick={() => setActiveQuizId(q._id)}>
-                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary-600/5 rounded-bl-[4rem] group-hover:scale-110 transition-transform" />
-                         <div className="w-14 h-14 rounded-2xl bg-primary-600/10 text-primary-600 flex items-center justify-center mb-6 shadow-inner"><Brain size={28}/></div>
-                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tight mb-2 leading-none">{q.title}</h3>
-                         <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-8 line-clamp-2 uppercase tracking-wide">{q.description || 'Test your cognitive logic across institutional parameters.'}</p>
-                         <div className="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-800">
-                            <div className="flex items-center gap-4">
-                               <div className="flex items-center gap-2"><Target size={14} className="text-gray-400"/><span className="text-xs font-semibold text-gray-500">{q.totalPoints} PTS</span></div>
-                               <div className="flex items-center gap-2"><Clock size={14} className="text-gray-400"/><span className="text-xs font-semibold text-gray-500">{q.timeLimit} MIN</span></div>
-                            </div>
-                            <div className="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center group-hover:bg-primary-600 transition-all shadow-lg group-hover:scale-110"><ChevronRight size={20}/></div>
-                         </div>
-                      </div>
-                    ))}
-                 </div>
-               )}
-
-               {/* Static Backup Quizzes for Demo / No API contexts */}
-               <div className="mt-12 opacity-40 hover:opacity-100 transition-opacity">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 px-2">Institutional Offline Modules</h4>
-                  <QuizCenter
-                    studentId={studentId}
-                    gamification={gamification}
-                    submitQuizAttempt={submitQuizAttempt}
-                    studentName={user?.name}
-                  />
-               </div>
-            </motion.div>
-          )}
 
           {activeTab === 'attendance' && (
             <motion.div key="attendance" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-6 pb-20">
@@ -1464,17 +1414,6 @@ const StudentDashboard = () => {
           )}
         </AnimatePresence>
 
-        {activeQuizId && (
-          <QuizArena 
-            quizId={activeQuizId} 
-            onClose={() => {
-              setActiveQuizId(null);
-              // Trigger refresh of gamification stats
-              const config = { headers: { Authorization: `Bearer ${user.token}` } };
-              axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/achievements`, config).then(r => setGamifiedStats(r.data));
-            }} 
-          />
-        )}
       </main>
     </div>
   );

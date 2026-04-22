@@ -123,7 +123,6 @@ export const getUsers = async (req, res) => {
     const filter = {};
     
     if (role && role !== 'all') filter.role = role;
-    if (section && section !== 'all') filter.section = section;
     if (isActive !== undefined && isActive !== 'all') filter.isActive = isActive === 'true';
     
     if (dept && dept !== 'all' && dept !== 'undefined' && dept !== '') {
@@ -132,11 +131,14 @@ export const getUsers = async (req, res) => {
             { department: { $regex: new RegExp(dept, 'i') } }
         ];
     }
-    
-    if (semester && semester !== 'all' && semester !== 'undefined' && semester !== '') {
-        const semNum = parseInt(semester);
-        if (!isNaN(semNum)) {
-            filter.semester = semNum;
+
+    if (role === 'student' || role === 'all') {
+        if (section && section !== 'all') filter.section = section;
+        if (semester && semester !== 'all' && semester !== 'undefined' && semester !== '') {
+            const semNum = parseInt(semester);
+            if (!isNaN(semNum)) {
+                filter.semester = semNum;
+            }
         }
     }
     
