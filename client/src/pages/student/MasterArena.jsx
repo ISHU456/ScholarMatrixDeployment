@@ -180,7 +180,7 @@ const MasterArena = () => {
         {user?.role === 'admin' && (
           <div className="flex items-center gap-4 mb-12">
              <button onClick={() => setActiveTab('hall')} className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'hall' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-white/10'}`}>Master Arena Hub</button>
-             <button onClick={() => setActiveTab('governance')} className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'governance' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-white/10'}`}>Fulfillment Hub</button>
+             <button onClick={() => setActiveTab('governance')} className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'governance' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-white/10'}`}>ordersList</button>
           </div>
         )}
 

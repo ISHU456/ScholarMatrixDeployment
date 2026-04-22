@@ -47,27 +47,14 @@ const OrderManager = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold uppercase tracking-tight mb-2">Order Fulfillment Hub</h2>
-          <p className="text-xs font-bold text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">Registry Inventory Management</p>
+          <h2 className="text-2xl font-bold uppercase tracking-tight mb-2 italic">ordersList</h2>
+          <p className="text-xs font-bold text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">Institutional Asset Governance Node</p>
         </div>
         
-        <div className="flex items-center gap-3 bg-slate-100 dark:bg-white/5 p-1.5 rounded-[1.5rem] border border-slate-200 dark:border-white/10">
-          {['pending', 'delivered', 'cancelled', 'all'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-6 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-                filter === f 
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
-                  : 'text-slate-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-white/10'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
           <button 
             onClick={fetchOrders}
-            className="p-2.5 text-slate-400 hover:text-indigo-500 transition-colors"
+            className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-indigo-500 transition-all rounded-xl border border-slate-200 dark:border-white/10"
           >
             <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
           </button>
@@ -128,31 +115,28 @@ const OrderManager = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  {order.status === 'pending' ? (
-                    <>
-                      <button 
-                        onClick={() => updateOrderStatus(order._id, 'cancelled')}
-                        className="p-4 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-2xl transition-all border border-rose-500/20"
-                        title="Reject Order"
-                      >
-                        <XCircle size={20} />
-                      </button>
-                      <button 
-                        onClick={() => updateOrderStatus(order._id, 'delivered')}
-                        className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
-                      >
-                        <CheckCircle size={18} />
-                        Approve & Ship
-                      </button>
-                    </>
-                  ) : (
-                    <div className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest border ${
-                      order.status === 'delivered' ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' : 'text-rose-500 bg-rose-500/10 border-rose-500/20'
-                    }`}>
-                      {order.status}
-                    </div>
-                  )}
+                <div className="flex items-center gap-4">
+                  <div className="text-right hidden lg:block">
+                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Current Protocol</p>
+                     <p className={`text-[10px] font-black uppercase tracking-tighter italic ${
+                       order.status === 'delivered' ? 'text-emerald-500' : 
+                       order.status === 'rejected' ? 'text-rose-500' : 
+                       'text-amber-500'
+                     }`}>
+                       {order.status}
+                     </p>
+                  </div>
+                  <select 
+                    value={order.status}
+                    onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-white outline-none focus:ring-2 ring-indigo-500/20 transition-all cursor-pointer shadow-sm"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="in progress">In Progress</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </div>
               </motion.div>
             ))
