@@ -60,13 +60,13 @@ const SessionTracker = () => {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       
       // 1. Mark streak in DB
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/mark-streak`, {}, config);
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/mark-streak`, {}, config);
       
       // 2. Mark attendance in local store
       markAttendance({ dateKey: todayKey });
       
       // 3. Refresh profile to get updated coins/streak
-      const profileRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/profile`, config);
+      const profileRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/profile`, config);
       if (profileRes.data) {
         dispatch(updateProfile(profileRes.data));
       }

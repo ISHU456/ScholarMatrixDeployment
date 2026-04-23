@@ -168,14 +168,15 @@ const getBadgeMeta = (badgeId) => {
   return meta[badgeId];
 };
 
-export const awardXPForStudent = ({ studentId, amount, reason }) => {
-  if (!studentId || !amount) return { state: null, events: [] };
+export const awardRewardsForStudent = ({ studentId, xpAmount, coinsAmount, reason }) => {
+  if (!studentId) return { state: null, events: [] };
 
   const prev = getGamificationState(studentId);
   const prevLevel = getLevelFromXp(prev.xp);
 
   const next = cloneState(prev);
-  next.xp = (next.xp || 0) + amount;
+  if (xpAmount) next.xp = (next.xp || 0) + Number(xpAmount);
+  if (coinsAmount) next.coins = (next.coins || 0) + Number(coinsAmount);
   next.lastActiveDate = getTodayKey();
 
   const nextLevel = getLevelFromXp(next.xp);
@@ -187,13 +188,36 @@ export const awardXPForStudent = ({ studentId, amount, reason }) => {
   saveGamificationState(studentId, next);
 
   const events = [];
-  events.push({
-    type: 'xp_gained',
-    title: `+${amount} XP`,
-    subtitle: reason || 'Achievement unlocked',
-    icon: 'zap',
-    color: 'bg-primary-600/20 text-primary-200 border-primary-400/40',
-  });
+  if (xpAmount) {
+    events.push({
+      type: 'xp_gained',
+      title: `+${xpAmount} XP`,
+      subtitle: reason || 'Achievement unlocked',
+      icon: 'zap',
+      color: 'bg-primary-600/20 text-primary-200 border-primary-400/40',
+    });
+    emitAchievement({
+      title: `+${xpAmount} XP`,
+      subtitle: reason || 'Experience gained!',
+      icon: 'zap',
+      color: 'bg-primary-600/80'
+    });
+  }
+  if (coinsAmount) {
+    events.push({
+      type: 'coins_gained',
+      title: `+${coinsAmount} Coins`,
+      subtitle: reason || 'Resource Sync Completed',
+      icon: 'award',
+      color: 'bg-amber-600/20 text-amber-200 border-amber-400/40',
+    });
+    emitAchievement({
+      title: `+${coinsAmount} Coins`,
+      subtitle: reason || 'Rewards earned!',
+      icon: 'award',
+      color: 'bg-amber-500/80'
+    });
+  }
 
   if (nextLevel > prevLevel) {
     events.push({
@@ -221,6 +245,10 @@ export const awardXPForStudent = ({ studentId, amount, reason }) => {
   return { state: next, events };
 };
 
+export const awardXPForStudent = ({ studentId, amount, reason }) => {
+  return awardRewardsForStudent({ studentId, xpAmount: amount, reason });
+};
+
 export const markAttendanceForStudent = ({ studentId, dateKey }) => {
   if (!studentId) return { state: null, events: [] };
   const prev = getGamificationState(studentId);
@@ -243,10 +271,11 @@ export const markAttendanceForStudent = ({ studentId, dateKey }) => {
   saveGamificationState(studentId, next);
 
   // Attendance is part of your XP rule.
-  const xpResult = awardXPForStudent({
+  const rewardResult = awardRewardsForStudent({
     studentId,
-    amount: 10,
-    reason: 'Attend class',
+    xpAmount: 10,
+    coinsAmount: 5,
+    reason: 'Daily institutional presence verified',
   });
 
   const events = [];
@@ -257,11 +286,11 @@ export const markAttendanceForStudent = ({ studentId, dateKey }) => {
     icon: 'calendar',
     color: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40',
   });
-  // awardXPForStudent already emits xp/level/badge events, so we only add attendance event here.
+  // awardRewardsForStudent already emits xp/level/badge events, so we only add attendance event here.
   emitAchievement(events[0]);
 
-  // Merge with xp events for optional caller use.
-  return { state: xpResult.state || next, events: [...events, ...(xpResult.events || [])] };
+  // Merge with reward events for optional caller use.
+  return { state: rewardResult.state || next, events: [...events, ...(rewardResult.events || [])] };
 };
 
 const ensureCourseProgress = (state, courseId) => {
@@ -277,7 +306,7 @@ const ensureCourseProgress = (state, courseId) => {
   return state.progressByCourseId[courseId];
 };
 
-export const completeLectureForStudent = ({ studentId, courseId, lectureId, lectureType }) => {
+export const completeLectureForStudent = ({ studentId, courseId, lectureId, lectureType, xpReward, coinsReward }) => {
   if (!studentId || !courseId || !lectureId) return null;
   const prev = getGamificationState(studentId);
   const next = cloneState(prev);
@@ -288,22 +317,25 @@ export const completeLectureForStudent = ({ studentId, courseId, lectureId, lect
     if (lectureType) courseProgress.completedLectureTypesById[lectureId] = lectureType;
     saveGamificationState(studentId, next);
 
-    // Award XP
-    const xpAmount = lectureType === 'youtube' || lectureType === 'yt' ? 15 : 10;
+    // Award XP & Coins
+    const finalXp = xpReward || (lectureType === 'youtube' || lectureType === 'yt' ? 15 : 10);
+    const finalCoins = coinsReward || 0;
+    
     const reason = `Completed ${lectureType || 'resource'}`;
-    const xpResult = awardXPForStudent({
+    const result = awardRewardsForStudent({
       studentId,
-      amount: xpAmount,
+      xpAmount: finalXp,
+      coinsAmount: finalCoins,
       reason
     });
 
-    return xpResult.state || next;
+    return result.state || next;
   }
 
   return prev;
 };
 
-export const submitAssignmentForStudent = ({ studentId, courseId, assignmentId }) => {
+export const submitAssignmentForStudent = ({ studentId, courseId, assignmentId, xpReward, coinsReward }) => {
   if (!studentId || !courseId || !assignmentId) return { state: null, events: [] };
 
   const prev = getGamificationState(studentId);
@@ -317,12 +349,13 @@ export const submitAssignmentForStudent = ({ studentId, courseId, assignmentId }
   courseProgress.completedAssignmentIds.push(assignmentId);
   saveGamificationState(studentId, next);
 
-  const xpResult = awardXPForStudent({
+  const result = awardRewardsForStudent({
     studentId,
-    amount: 20,
+    xpAmount: xpReward || 20,
+    coinsAmount: coinsReward || 5,
     reason: 'Submit assignment',
   });
-  return { state: xpResult.state || next, events: xpResult.events || [] };
+  return { state: result.state || next, events: result.events || [] };
 };
 
 export const submitQuizAttemptForStudent = ({

@@ -36,7 +36,7 @@ const HODDashboard = () => {
     localStorage.setItem('hodActiveTab', activeTab);
     if (activeTab === 'quizzes') {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, config)
+      axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes`, config)
         .then(r => setQuizzes(r.data))
         .catch(e => console.error(e));
     }

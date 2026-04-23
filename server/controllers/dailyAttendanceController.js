@@ -16,14 +16,19 @@ export const markDailyEntry = async (req, res) => {
       return res.status(400).json({ message: 'Missing face descriptor or location data' });
     }
 
-    // 1. Check Window (10 AM to 5 PM)
+    // 1. Fetch GPS/Window Config
+    const gpsConfig = await GPSConfig.findOne({ isActive: true });
+    if (!gpsConfig) {
+        return res.status(500).json({ message: 'Attendance configuration not found' });
+    }
+
+    // 2. Check Entry Window
     const now = new Date();
-    const currentHour = now.getHours();
+    const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
     
-    // Check if it's within 10:00 to 17:00 (5 PM)
-    if (currentHour < 10 || currentHour >= 17) {
+    if (currentTimeStr < gpsConfig.entryStartTime || currentTimeStr > gpsConfig.entryEndTime) {
       return res.status(403).json({ 
-        message: 'Attendance system is only active between 10:00 AM and 05:00 PM' 
+        message: `Entry window is only active between ${gpsConfig.entryStartTime} and ${gpsConfig.entryEndTime}` 
       });
     }
 
@@ -42,9 +47,8 @@ export const markDailyEntry = async (req, res) => {
 
     if (!isMatch) return res.status(401).json({ message: 'Face verification failed' });
 
-    // 3. GPS Verification
-    const gpsConfig = await GPSConfig.findOne({ isActive: true });
-    if (gpsConfig) {
+    // 4. GPS Verification
+    if (gpsConfig.center && gpsConfig.center.lat) {
       const distance = getDistance(location.latitude, location.longitude, gpsConfig.center.lat, gpsConfig.center.lng);
       if (distance > gpsConfig.radius) {
          return res.status(401).json({ 
@@ -54,8 +58,9 @@ export const markDailyEntry = async (req, res) => {
     }
 
     // 4. Record Entry
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Use IST timezone for date calculation to avoid UTC offset issues (Render servers are often in UTC)
+    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const today = new Date(Date.UTC(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate()));
 
     let attendance = await DailyAttendance.findOne({ student: userId, date: today });
 
@@ -104,13 +109,19 @@ export const markDailyExit = async (req, res) => {
       return res.status(400).json({ message: 'Missing face descriptor or location data' });
     }
 
-    // 1. Check Window
+    // 1. Fetch Config
+    const gpsConfig = await GPSConfig.findOne({ isActive: true });
+    if (!gpsConfig) {
+        return res.status(500).json({ message: 'Attendance configuration not found' });
+    }
+
+    // 2. Check Exit Window
     const now = new Date();
-    const currentHour = now.getHours();
+    const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
     
-    if (currentHour < 10 || currentHour >= 17) {
+    if (currentTimeStr < gpsConfig.exitStartTime || currentTimeStr > gpsConfig.exitEndTime) {
       return res.status(403).json({ 
-        message: 'Attendance system is only active between 10:00 AM and 05:00 PM' 
+        message: `Exit window is only active between ${gpsConfig.exitStartTime} and ${gpsConfig.exitEndTime}` 
       });
     }
 
@@ -128,8 +139,8 @@ export const markDailyExit = async (req, res) => {
 
     if (!isMatch) return res.status(401).json({ message: 'Face verification failed' });
 
-    const gpsConfig = await GPSConfig.findOne({ isActive: true });
-    if (gpsConfig) {
+    // 4. GPS Verification (Same as entry)
+    if (gpsConfig.center && gpsConfig.center.lat) {
       const distance = getDistance(location.latitude, location.longitude, gpsConfig.center.lat, gpsConfig.center.lng);
       if (distance > gpsConfig.radius) {
          return res.status(401).json({ message: `Outside campus perimeter (${Math.round(distance)}m away)` });
@@ -137,8 +148,8 @@ export const markDailyExit = async (req, res) => {
     }
 
     // 3. Record Exit
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const today = new Date(Date.UTC(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate()));
 
     let attendance = await DailyAttendance.findOne({ student: userId, date: today });
 
@@ -170,8 +181,8 @@ export const markDailyExit = async (req, res) => {
 // @route   GET /api/attendance/daily/status
 export const getDailyStatus = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const today = new Date(Date.UTC(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate()));
     
     const attendance = await DailyAttendance.findOne({ 
       student: req.user._id, 
@@ -190,19 +201,27 @@ export const getDailyStatus = async (req, res) => {
 // @route   POST /api/attendance/daily/gps-config
 export const updateGPSConfig = async (req, res) => {
   try {
-    const { lat, lng, radius, label } = req.body;
+    const { lat, lng, radius, label, entryStartTime, entryEndTime, exitStartTime, exitEndTime } = req.body;
 
     let config = await GPSConfig.findOne({ isActive: true });
     if (config) {
       config.center = { lat, lng };
       config.radius = radius;
       config.label = label || config.label;
+      config.entryStartTime = entryStartTime || config.entryStartTime;
+      config.entryEndTime = entryEndTime || config.entryEndTime;
+      config.exitStartTime = exitStartTime || config.exitStartTime;
+      config.exitEndTime = exitEndTime || config.exitEndTime;
       config.updatedBy = req.user._id;
     } else {
       config = new GPSConfig({
         center: { lat, lng },
         radius,
         label,
+        entryStartTime,
+        entryEndTime,
+        exitStartTime,
+        exitEndTime,
         updatedBy: req.user._id
       });
     }

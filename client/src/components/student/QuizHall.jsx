@@ -15,7 +15,7 @@ const QuizHall = ({ quizzes = [], onSelect, isAdmin, onRefresh }) => {
     setIsAttendeesLoading(true);
     try {
       const token = JSON.parse(localStorage.getItem('userInfo'))?.token;
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}/attendees`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quizId}/attendees`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLocalAttendees(prev => ({ ...prev, [quizId]: res.data }));
@@ -107,11 +107,11 @@ const QuizHall = ({ quizzes = [], onSelect, isAdmin, onRefresh }) => {
                                  if (!window.confirm(`Reset attempt for ${a.user?.name}?`)) return;
                                  try {
                                    const token = JSON.parse(localStorage.getItem('userInfo'))?.token;
-                                   await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quiz._id}/attempts/${a.user?._id}`, {
+                                   await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quiz._id}/attempts/${a.user?._id}`, {
                                      headers: { Authorization: `Bearer ${token}` }
                                    });
                                    // Refresh local list
-                                   const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quiz._id}/attendees`, {
+                                   const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quiz._id}/attendees`, {
                                      headers: { Authorization: `Bearer ${token}` }
                                    });
                                    setLocalAttendees(prev => ({ ...prev, [quiz._id]: res.data }));
@@ -147,6 +147,7 @@ const QuizHall = ({ quizzes = [], onSelect, isAdmin, onRefresh }) => {
                 <div className="flex flex-col items-end">
                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{quiz.isAttempted ? 'Earned' : 'Neural Reward'}</span>
                    <span className={`text-lg font-bold tabular-nums ${quiz.isAttempted ? 'text-emerald-500' : 'text-gray-900 dark:text-white'}`}>{quiz.totalPoints} <span className="text-[10px]">COINS</span></span>
+                   <span className="text-[8px] font-bold text-indigo-500 uppercase tracking-tight mt-1">{quiz.attendeeCount || 0} Scholars Attended</span>
                 </div>
               </div>
 

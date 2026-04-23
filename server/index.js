@@ -202,6 +202,6 @@ io.on('connection', (socket) => {
 // Use the port from environment or fallback to 5000 (standard for backend)
 const PORT = process.env.PORT || 5000;
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

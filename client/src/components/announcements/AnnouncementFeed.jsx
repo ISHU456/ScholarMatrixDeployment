@@ -5,9 +5,9 @@ import { Loader2, Sparkles, Filter, Newspaper, Layers, Search } from 'lucide-rea
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 
-const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com') + '');
+const socket = io('' + (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '', { transports: ['websocket'] });
 
-const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com') + '/api';
+const API_BASE = '' + (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '/api';
 
 const PostSkeleton = () => (
   <div className="bg-white dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] p-6 animate-pulse">

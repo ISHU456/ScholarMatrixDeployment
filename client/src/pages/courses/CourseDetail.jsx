@@ -17,6 +17,7 @@ import Chatbot from '../../components/Chatbot';
 import {
   completeLectureForStudent,
   getGamificationState,
+  saveGamificationState,
   getTodayKey,
   markAttendanceForStudent,
   getCourseProgressSummary
@@ -149,7 +150,7 @@ const CourseDetail = () => {
 
   const updateScheduleInDB = async (payload) => {
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${courseId}/schedule`, payload, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${courseId}/schedule`, payload, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setTimetable(res.data.schedule);
@@ -175,7 +176,7 @@ const CourseDetail = () => {
 
     try {
       const code = courseId.toUpperCase();
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${code}/schedule/image`, formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${code}/schedule/image`, formData, {
         headers: { 
           Authorization: `Bearer ${user.token}`,
           'Content-Type': 'multipart/form-data'
@@ -195,7 +196,7 @@ const CourseDetail = () => {
     if (!window.confirm('Are you sure you want to delete the Master Timetable photo?')) return;
     try {
       const code = courseId.toUpperCase();
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${code}/schedule`, { 
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${code}/schedule`, { 
         timetableImageUrl: '' 
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
@@ -218,6 +219,7 @@ const CourseDetail = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newType, setNewType] = useState('pdf');
   const [newPoints, setNewPoints] = useState(15);
+  const [newCoinsReward, setNewCoinsReward] = useState(0);
   const [newUrl, setNewUrl] = useState('');
   const [asgnTitle, setAsgnTitle] = useState('');
   const [asgnDue, setAsgnDue] = useState('');
@@ -239,14 +241,46 @@ const CourseDetail = () => {
   const fetchProgress = async () => {
     if (!user?._id || !courseId) return;
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/progress/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/progress/${courseId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setDbProgress(res.data);
       // Sync local completedItems set
       if (res.data.progress?.completedItems) {
-        const itemIds = new Set(res.data.progress.completedItems.map(i => i.itemId));
+        const completedItemsList = res.data.progress.completedItems;
+        const itemIds = new Set(completedItemsList.map(i => i.itemId));
         setCompletedItems(itemIds);
+
+        // Sync with local gamification store
+        let currentStore = getGamificationState(user._id);
+        if (currentStore) {
+          if (!currentStore.progressByCourseId) currentStore.progressByCourseId = {};
+          if (!currentStore.progressByCourseId[courseId]) {
+            currentStore.progressByCourseId[courseId] = { 
+              completedLectureIds: [], 
+              completedLectureTypesById: {},
+              completedAssignmentIds: [],
+              completedQuizIds: []
+            };
+          }
+          
+          let changed = false;
+          completedItemsList.forEach(item => {
+            const courseStore = currentStore.progressByCourseId[courseId];
+            if (!courseStore.completedLectureIds.includes(item.itemId)) {
+              courseStore.completedLectureIds.push(item.itemId);
+              courseStore.completedLectureTypesById[item.itemId] = item.itemType || 'lecture';
+              // Add some XP for legacy items that weren't in store
+              currentStore.xp = (currentStore.xp || 0) + 10;
+              changed = true;
+            }
+          });
+
+          if (changed) {
+            saveGamificationState(user._id, currentStore);
+            setGamificationState(currentStore);
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to fetch progress', err);
@@ -260,7 +294,7 @@ const CourseDetail = () => {
   const handleStartLive = async (cId) => {
     if (isUserTeacher) {
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/notifications/broadcast-live`, { courseId: cId }, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/notifications/broadcast-live`, { courseId: cId }, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
       } catch (err) {
@@ -294,7 +328,7 @@ const CourseDetail = () => {
     setTimeout(() => setShowProgressToast(false), 3000);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/progress/update`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/progress/update`, {
         courseId,
         itemId,
         itemType
@@ -317,7 +351,7 @@ const CourseDetail = () => {
 
   const fetchCourseData = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${courseId}`, {
          headers: { Authorization: `Bearer ${user.token}` }
       });
       setCourseInfo(res.data);
@@ -336,7 +370,7 @@ const CourseDetail = () => {
   useEffect(() => {
     if (courseId && user?.token && hasIncrementedView.current !== courseId) {
        hasIncrementedView.current = courseId;
-       axios.patch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${courseId}/view`, {}, {
+       axios.patch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${courseId}/view`, {}, {
          headers: { Authorization: `Bearer ${user.token}` }
        }).catch(err => console.error('Failed to increment views', err));
     }
@@ -402,6 +436,37 @@ const CourseDetail = () => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [videoLoadStates, setVideoLoadStates] = useState({});
   
+  // Gamification Settings
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [rewardForm, setRewardForm] = useState({ coinsReward: 0, xpReward: 0 });
+
+  useEffect(() => {
+    if (courseInfo) {
+      setRewardForm({ 
+        coinsReward: courseInfo.coinsReward || 0, 
+        xpReward: courseInfo.xpReward || 0 
+      });
+    }
+  }, [courseInfo]);
+
+  useEffect(() => {
+    const handleOpenSettings = () => setShowSettingsModal(true);
+    document.addEventListener('scholarmatrix:open_course_settings', handleOpenSettings);
+    return () => document.removeEventListener('scholarmatrix:open_course_settings', handleOpenSettings);
+  }, []);
+
+  const handleSaveRewards = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${courseId}/gamification`, rewardForm, config);
+      alert('Neural rewards synchronized.');
+      setShowSettingsModal(false);
+      fetchCourseData();
+    } catch (err) {
+      alert('Sync failed: ' + err.message);
+    }
+  };
+  
   // Refs for resizing
   const resizerRef = useRef(null);
   const leftColumnRef = useRef(null);
@@ -411,7 +476,7 @@ const CourseDetail = () => {
   const fetchResources = async () => {
     try { 
       setIsLoading(true); 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources?courseId=${courseId}`); 
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources?courseId=${courseId}`); 
       setResources(res.data); 
     } catch (err) { 
       console.error(err); 
@@ -422,7 +487,7 @@ const CourseDetail = () => {
   
   const fetchAssignments = async () => { 
     try { 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/course/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/course/${courseId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       }); 
       setAssignments(res.data); 
@@ -434,7 +499,7 @@ const CourseDetail = () => {
 
   const fetchStudentSubmissions = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/my-submissions/${courseId}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/my-submissions/${courseId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setStudentSubmissions(res.data);
@@ -445,7 +510,7 @@ const CourseDetail = () => {
   
   const fetchAnnouncements = async () => { 
     try { 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/announcements`); 
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/announcements`); 
       const data = Array.isArray(res.data) ? res.data : (res.data.announcements || []);
       setAnnouncements(data.slice(0, 3)); 
     } catch (err) { 
@@ -455,7 +520,7 @@ const CourseDetail = () => {
 
   const fetchOnlineCount = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/course-activity/${courseId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/course-activity/${courseId}`);
       setOnlineStudents(res.data.onlineCount || 0);
     } catch (err) { 
       console.error(err); 
@@ -464,7 +529,7 @@ const CourseDetail = () => {
 
   const sendPulse = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/pulse`, { courseId }, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/pulse`, { courseId }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
     } catch (err) { 
@@ -483,10 +548,18 @@ const CourseDetail = () => {
     sendPulse();
 
     if (isStudent && user?._id) {
-      const state = getGamificationState(user._id);
+      let state = getGamificationState(user._id);
+      
+      // Sync from Redux user object if store is fresh or out of sync on coins
+      if (user.coins !== undefined && (!state || state.coins < user.coins)) {
+        if (!state) state = getGamificationState(user._id);
+        state.coins = user.coins;
+        saveGamificationState(user._id, state);
+      }
+
       setGamificationState(state);
       const ids = state?.progressByCourseId?.[courseId]?.completedLectureIds || [];
-      setCompletedItems(new Set(ids));
+      if (ids.length > 0) setCompletedItems(new Set(ids));
     }
 
     const interval = setInterval(() => {
@@ -569,13 +642,20 @@ const CourseDetail = () => {
 
   const handleMarkComplete = (item) => {
     if (isStudent && user?._id && !completedItems.has(item._id)) {
-      completeLectureForStudent(user._id, courseId, item._id, item.points || 10, item.type === 'assignment' ? 'assignment' : 'lecture');
+      const newState = completeLectureForStudent({
+        studentId: user._id,
+        courseId,
+        lectureId: item._id,
+        lectureType: item.type === 'assignment' ? 'assignment' : 'lecture',
+        xpReward: item.points || 10,
+        coinsReward: item.coinsReward || 0
+      });
+      
+      if (newState) setGamificationState(newState);
+      // Local set for UI fast feedback
       const newSet = new Set(completedItems);
       newSet.add(item._id);
       setCompletedItems(newSet);
-      
-      const state = getGamificationState(user._id);
-      setGamificationState(state);
     }
   };
 
@@ -586,10 +666,10 @@ const CourseDetail = () => {
       if (user?.token) config.headers = { Authorization: `Bearer ${user.token}` };
       
       if (activeSection === 'assignments') {
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/${item._id}?courseId=${courseId}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/${item._id}?courseId=${courseId}`, config);
         setAssignments(assignments.filter(a => a._id !== item._id));
       } else {
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources/${item._id}?courseId=${courseId}`, config); 
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources/${item._id}?courseId=${courseId}`, config); 
         setResources(resources.filter(r => r._id !== item._id)); 
       }
       
@@ -600,6 +680,65 @@ const CourseDetail = () => {
       console.error(err);
       alert('Delete failed'); 
     } 
+  };
+
+  const handleUploadCombined = async (e) => {
+    if (e) e.preventDefault();
+    if (!newTitle) return alert("Title required");
+    
+    setIsUploading(true);
+    setUploadProgress(10);
+    
+    try {
+      const formData = new FormData();
+      formData.append('title', newTitle);
+      formData.append('type', newType);
+      formData.append('points', newPoints);
+      formData.append('coinsReward', newCoinsReward);
+      formData.append('extraCourseId', courseId);
+      formData.append('uploadedBy', user._id);
+
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources/upload?courseId=${courseId}`, formData, {
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${user.token}`
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        });
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources?courseId=${courseId}`, {
+          title: newTitle, 
+          type: newType, 
+          fileUrl: newUrl, 
+          points: newPoints,
+          coinsReward: newCoinsReward,
+          extraCourseId: courseId,
+          uploadedBy: user._id
+        }, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+      }
+      
+      alert('Content deployed successfully');
+      setNewTitle('');
+      setNewUrl('');
+      setSelectedFile(null);
+      setNewPoints(15);
+      setNewCoinsReward(0);
+      setShowUploadForm(false);
+      fetchResources();
+    } catch (err) {
+      console.error(err);
+      alert('Deployment failed: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const toggleComplete = (id) => {
@@ -623,12 +762,17 @@ const CourseDetail = () => {
     }
   
     setPreviewItem({ url: null, type: 'loading', title: res.title, id: res._id });
+    
+    // Auto-mark as complete when viewing
+    if (isStudent && !completedItems.has(res._id)) {
+      handleMarkComplete(res);
+    }
   
     let url = res.fileUrl;
     let originalType = res.type;
   
     if (res.fileData) {
-      url = `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources/file/${res._id}`;
+      url = `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources/file/${res._id}`;
     }
   
     let resolvedPreviewType = originalType;
@@ -871,6 +1015,70 @@ const CourseDetail = () => {
   return (
     <div className="flex h-[100dvh] bg-[#f8fafc] dark:bg-[#030712] overflow-hidden font-sans relative">
       <AnimatePresence>
+         {showSettingsModal && (
+           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               className="bg-white dark:bg-[#0b0f19] w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl border border-gray-100 dark:border-white/5"
+             >
+                <div className="flex items-center gap-4 mb-8">
+                   <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center">
+                      <Sparkles size={28} />
+                   </div>
+                   <div>
+                      <h2 className="text-2xl font-semibold dark:text-white uppercase tracking-tighter">Neural Reward Sync</h2>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Academic Gamification Control</p>
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Coins Completion Reward</label>
+                      <div className="relative">
+                         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-amber-500"><Award size={20} /></div>
+                         <input 
+                           type="number" 
+                           value={rewardForm.coinsReward}
+                           onChange={e => setRewardForm({...rewardForm, coinsReward: e.target.value})}
+                           className="w-full pl-14 pr-6 py-5 bg-gray-50 dark:bg-white/5 rounded-3xl text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                         />
+                      </div>
+                   </div>
+
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">XP Achievement Points</label>
+                      <div className="relative">
+                         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-500"><Zap size={20} /></div>
+                         <input 
+                           type="number" 
+                           value={rewardForm.xpReward}
+                           onChange={e => setRewardForm({...rewardForm, xpReward: e.target.value})}
+                           className="w-full pl-14 pr-6 py-5 bg-gray-50 dark:bg-white/5 rounded-3xl text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                         />
+                      </div>
+                   </div>
+                </div>
+
+                <div className="flex gap-4 mt-10">
+                   <button 
+                     onClick={() => setShowSettingsModal(false)}
+                     className="flex-1 py-5 rounded-3xl bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all"
+                   >
+                     Cancel
+                   </button>
+                   <button 
+                     onClick={handleSaveRewards}
+                     className="flex-1 py-5 rounded-3xl bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all"
+                   >
+                     Sync Protocol
+                   </button>
+                </div>
+             </motion.div>
+           </div>
+         )}
+      </AnimatePresence>
+      <AnimatePresence>
         {sidebarOpen && windowWidth < 1024 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -1020,8 +1228,33 @@ const CourseDetail = () => {
                         )}
 
                         {activeSection !== 'timetable' && (
-                          <IntelligenceTerminal 
-                            activeSection={activeSection}
+                          <div className="flex flex-col gap-4">
+                            <AnimatePresence>
+                              {showUploadForm && (
+                                <ContentUploader 
+                                  showUploadForm={showUploadForm}
+                                  setShowUploadForm={setShowUploadForm}
+                                  newTitle={newTitle}
+                                  setNewTitle={setNewTitle}
+                                  newType={newType}
+                                  setNewType={setNewType}
+                                  newUrl={newUrl}
+                                  setNewUrl={setNewUrl}
+                                  fileInputRef={fileInputRef}
+                                  selectedFile={selectedFile}
+                                  setSelectedFile={setSelectedFile}
+                                  handleUploadCombined={handleUploadCombined}
+                                  isUploading={isUploading}
+                                  uploadProgress={uploadProgress}
+                                  newPoints={newPoints}
+                                  setNewPoints={setNewPoints}
+                                  newCoinsReward={newCoinsReward}
+                                  setNewCoinsReward={setNewCoinsReward}
+                                />
+                              )}
+                            </AnimatePresence>
+                            <IntelligenceTerminal 
+                              activeSection={activeSection}
                             isAdminHOD={isAdminHOD}
                             setShowUploadForm={setShowUploadForm}
                             showUploadForm={showUploadForm}
@@ -1034,19 +1267,32 @@ const CourseDetail = () => {
                             resources={resources}
                             previewItem={previewItem}
                             isStudent={isStudent}
-                            handleMarkComplete={handleMarkComplete}
-                            handlePreview={handlePreview}
-                            handleDelete={handleDelete}
-                            completedItems={completedItems}
-                            updateScheduleInDB={updateScheduleInDB}
-                            selectedAssignment={selectedAssignment}
-                            setSelectedAssignment={(val) => {
-                                setSelectedAssignment(val);
-                                if (val) setLeftWidth(40);
-                            }}
-                            studentSubmissions={studentSubmissions}
-                            fetchAssignments={fetchAssignments}
-                          />
+                              isAdminHOD={isAdminHOD}
+                              setShowUploadForm={setShowUploadForm}
+                              showUploadForm={showUploadForm}
+                              timetable={timetable}
+                              isTeacher={isAuthorizedTeacher}
+                              courseId={courseId}
+                              user={user}
+                              handleDeleteScheduleItem={handleDeleteScheduleItem}
+                              assignments={assignments}
+                              resources={resources}
+                              previewItem={previewItem}
+                              isStudent={isStudent}
+                              handleMarkComplete={handleMarkComplete}
+                              handlePreview={handlePreview}
+                              handleDelete={handleDelete}
+                              completedItems={completedItems}
+                              updateScheduleInDB={updateScheduleInDB}
+                              selectedAssignment={selectedAssignment}
+                              setSelectedAssignment={(val) => {
+                                  setSelectedAssignment(val);
+                                  if (val) setLeftWidth(40);
+                              }}
+                              studentSubmissions={studentSubmissions}
+                              fetchAssignments={fetchAssignments}
+                            />
+                          </div>
                         )}
                       </div>
 

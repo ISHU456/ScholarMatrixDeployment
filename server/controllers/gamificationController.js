@@ -130,7 +130,7 @@ export const getLeaderboard = async (req, res) => {
         const leaderboard = await User.find(matchStage)
             .select('name profilePic coins department streak')
             .sort({ coins: -1 })
-            .limit(20);
+            .limit(50);
 
         res.json(leaderboard);
     } catch (error) {
@@ -187,9 +187,13 @@ export const getQuizzes = async (req, res) => {
         const attempts = await QuizAttempt.find({ user: req.user._id }).select('quiz');
         const attemptedQuizIds = attempts.map(a => a.quiz.toString());
 
-        const quizzesWithStatus = quizzes.map(quiz => ({
-            ...quiz._doc,
-            isAttempted: attemptedQuizIds.includes(quiz._id.toString())
+        const quizzesWithStatus = await Promise.all(quizzes.map(async (quiz) => {
+            const attendeeCount = await QuizAttempt.countDocuments({ quiz: quiz._id });
+            return {
+                ...quiz._doc,
+                isAttempted: attemptedQuizIds.includes(quiz._id.toString()),
+                attendeeCount
+            };
         }));
 
         res.json(quizzesWithStatus);
@@ -281,9 +285,9 @@ export const resetQuizAttempt = async (req, res) => {
     try {
         const { quizId, userId } = req.params;
         
-        // Only admins can reset attempts
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: "Unauthorized: Admin access required." });
+        // Only admins or teachers can reset attempts
+        if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
+            return res.status(403).json({ message: "Unauthorized: Admin or Teacher access required." });
         }
 
         const result = await QuizAttempt.findOneAndDelete({ quiz: quizId, user: userId });
@@ -302,8 +306,8 @@ export const resetAllQuizAttempts = async (req, res) => {
     try {
         const { id } = req.params;
         
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: "Unauthorized: Admin access required." });
+        if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
+            return res.status(403).json({ message: "Unauthorized: Admin or Teacher access required." });
         }
 
         const result = await QuizAttempt.deleteMany({ quiz: id });
@@ -318,8 +322,8 @@ export const toggleQuizStatus = async (req, res) => {
     try {
         const { id } = req.params;
         
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: "Unauthorized: Admin access required." });
+        if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
+            return res.status(403).json({ message: "Unauthorized: Admin or Teacher access required." });
         }
 
         const quiz = await Quiz.findById(id);
@@ -330,6 +334,35 @@ export const toggleQuizStatus = async (req, res) => {
 
         console.log(`Admin ${req.user.email} toggled quiz ${id} to ${quiz.isActive ? 'Active' : 'Inactive'}`);
         res.json({ message: `Quiz status updated to ${quiz.isActive ? 'Active' : 'Inactive'}`, isActive: quiz.isActive });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const awardClassCoins = async (req, res) => {
+    try {
+        const { minutes } = req.body;
+        const userId = req.user._id;
+        
+        if (!minutes || minutes <= 0) {
+            return res.status(400).json({ message: "Invalid time duration" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Award 2 coins per minute
+        const coinsToAward = Math.round(minutes * 2);
+        user.coins += coinsToAward;
+        user.totalLearningTime = (user.totalLearningTime || 0) + Number(minutes);
+        
+        await user.save();
+
+        res.json({
+            message: `Neural Link Synced: +${coinsToAward} Scholar Coins awarded for ${minutes} minutes of active learning.`,
+            coinsEarned: coinsToAward,
+            totalCoins: user.coins
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

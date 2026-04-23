@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Save, Shield, Crosshair, Navigation, AlertCircle, Info, CheckCircle } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
+import { MapPin, Save, Shield, Crosshair, Navigation, AlertCircle, Info, CheckCircle, Clock } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet';
+
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -17,12 +18,27 @@ L.Icon.Default.mergeOptions({
     shadowUrl: markerShadow,
 });
 
+// Component to handle map recentering when coordinates change
+const RecenterMap = ({ lat, lng }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (lat && lng) {
+            map.setView([lat, lng], map.getZoom());
+        }
+    }, [lat, lng, map]);
+    return null;
+};
+
 const GPSConfigPage = () => {
     const [config, setConfig] = useState({
         lat: '',
         lng: '',
         radius: 100,
-        label: 'Main Campus'
+        label: 'Main Campus',
+        entryStartTime: '09:00',
+        entryEndTime: '11:00',
+        exitStartTime: '16:00',
+        exitEndTime: '18:00'
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -51,7 +67,7 @@ const GPSConfigPage = () => {
         try {
             const userStr = localStorage.getItem('user');
             const token = userStr ? JSON.parse(userStr).token : null;
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/daily/gps-config`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/daily/gps-config`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.data) {
@@ -59,7 +75,11 @@ const GPSConfigPage = () => {
                     lat: res.data.center.lat,
                     lng: res.data.center.lng,
                     radius: res.data.radius,
-                    label: res.data.label
+                    label: res.data.label,
+                    entryStartTime: res.data.entryStartTime || '09:00',
+                    entryEndTime: res.data.entryEndTime || '11:00',
+                    exitStartTime: res.data.exitStartTime || '16:00',
+                    exitEndTime: res.data.exitEndTime || '18:00'
                 });
             }
             setLoading(false);
@@ -75,18 +95,23 @@ const GPSConfigPage = () => {
             return;
         }
 
+        setMessage(null);
+        setError(null);
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                setConfig({
-                    ...config,
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                });
+                const { latitude, longitude } = position.coords;
+                setConfig(prev => ({
+                    ...prev,
+                    lat: latitude,
+                    lng: longitude
+                }));
                 setMessage({ type: 'success', text: 'Current coordinates captured successfully.' });
             },
             (err) => {
-                setError("Failed to get location: " + err.message);
-            }
+                setError("Failed to get location: " + err.message + ". Please ensure location permissions are granted.");
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 
@@ -99,7 +124,7 @@ const GPSConfigPage = () => {
         try {
             const userStr = localStorage.getItem('user');
             const token = userStr ? JSON.parse(userStr).token : null;
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/daily/gps-config`, config, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/daily/gps-config`, config, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setMessage({ type: 'success', text: 'GPS Configuration updated successfully.' });
@@ -195,6 +220,62 @@ const GPSConfigPage = () => {
                                         <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-xs uppercase">METERS</div>
                                     </div>
                                 </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-slate-50 dark:bg-slate-800/40 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700/50 shadow-inner relative overflow-hidden group/window">
+                                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/window:opacity-[0.08] transition-opacity">
+                                            <Clock size={80} />
+                                        </div>
+                                        <label className="block text-[10px] font-bold uppercase text-primary-500 tracking-[0.2em] mb-4 ml-1">Entry Protocol Window</label>
+                                        <div className="grid grid-cols-1 gap-5 relative z-10">
+                                            <div className="space-y-1.5">
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase ml-1">Arrival From</span>
+                                                <input 
+                                                    type="time" 
+                                                    value={config.entryStartTime}
+                                                    onChange={(e) => setConfig({...config, entryStartTime: e.target.value})}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10 transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase ml-1">Arrival Until</span>
+                                                <input 
+                                                    type="time" 
+                                                    value={config.entryEndTime}
+                                                    onChange={(e) => setConfig({...config, entryEndTime: e.target.value})}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10 transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-50 dark:bg-slate-800/40 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700/50 shadow-inner relative overflow-hidden group/window">
+                                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/window:opacity-[0.08] transition-opacity">
+                                            <Navigation size={80} />
+                                        </div>
+                                        <label className="block text-[10px] font-bold uppercase text-amber-500 tracking-[0.2em] mb-4 ml-1">Exit Protocol Window</label>
+                                        <div className="grid grid-cols-1 gap-5 relative z-10">
+                                            <div className="space-y-1.5">
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase ml-1">Departure From</span>
+                                                <input 
+                                                    type="time" 
+                                                    value={config.exitStartTime}
+                                                    onChange={(e) => setConfig({...config, exitStartTime: e.target.value})}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-amber-500/10 transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase ml-1">Departure Until</span>
+                                                <input 
+                                                    type="time" 
+                                                    value={config.exitEndTime}
+                                                    onChange={(e) => setConfig({...config, exitEndTime: e.target.value})}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-white outline-none focus:ring-4 focus:ring-amber-500/10 transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex gap-4 pt-4">
@@ -242,6 +323,7 @@ const GPSConfigPage = () => {
                                     <TileLayer
                                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                     />
+                                    <RecenterMap lat={config.lat} lng={config.lng} />
                                     <MapClickHandler />
                                     <Marker position={[config.lat, config.lng]} />
                                     <Circle 

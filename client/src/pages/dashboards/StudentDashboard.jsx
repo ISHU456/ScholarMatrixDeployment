@@ -88,22 +88,6 @@ const StudentDashboard = () => {
   const [classroomAttendance, setClassroomAttendance] = useState({ students: [], records: [] });
 
   useEffect(() => {
-    // Sync latest profile data on mount to ensure semester/details are fresh
-    const syncProfile = async () => {
-       try {
-          const config = { headers: { Authorization: `Bearer ${user.token}` } };
-          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/profile`, config);
-          if (res.data) {
-             dispatch(updateProfile(res.data));
-          }
-       } catch (err) {
-          console.error("Profile sync failed", err);
-       } finally {
-          setIsLoading(false);
-       }
-    };
-    if (user?.token) syncProfile();
-    else setIsLoading(false);
 
   }, [user?.token, dispatch]);
 
@@ -113,7 +97,7 @@ const StudentDashboard = () => {
     const load = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses`, config);
         
         // Filter by selected semester and department
         const studentCourses = res.data.filter(c => 
@@ -126,14 +110,17 @@ const StudentDashboard = () => {
           excludedStudents: c.excludedStudents || []
         }));
 
-        if (!cancelled) setSemesterCourses(studentCourses);
+        if (!cancelled) {
+          setSemesterCourses(studentCourses);
+          setIsLoading(false); // Set loading to false early for better perceived performance
+        }
 
-        // Fetch resources for each course to compute total counts
+        // Fetch resources for each course in the background
         const map = {};
         await Promise.all(
           studentCourses.map(async (course) => {
             try {
-              const rRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources?courseId=${course.id}`);
+              const rRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources?courseId=${course.id}`);
               const resources = rRes.data || [];
               const totalLectures = resources.length;
               const totalVideos = resources.filter((r) => r.type === 'youtube' || r.type === 'yt').length;
@@ -150,6 +137,7 @@ const StudentDashboard = () => {
         if (!cancelled) setResourceMetaByCourseId(map);
       } catch (err) {
         console.error("Failed to load courses", err);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
@@ -171,7 +159,7 @@ const StudentDashboard = () => {
   const fetchLeaderboard = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/leaderboard`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/leaderboard`, config);
       setGlobalLeaderboard(res.data);
     } catch (err) {
       console.error("Failed to fetch leaderboard");
@@ -186,9 +174,9 @@ const StudentDashboard = () => {
     const fetchGamification = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const resStats = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/achievements`, config);
+        const resStats = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/achievements`, config);
         setGamifiedStats(resStats.data);
-        const resQuizzes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, config);
+        const resQuizzes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes`, config);
         setAvailableQuizzes(resQuizzes.data);
       } catch (e) {
         console.error(e);
@@ -199,7 +187,7 @@ const StudentDashboard = () => {
 
   const fetchClassroomAttendance = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/classroom`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/classroom`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       const data = res.data;
@@ -452,9 +440,22 @@ const StudentDashboard = () => {
         <div className="p-4 rounded-3xl border border-gray-100 dark:border-gray-800 bg-white/40 dark:bg-gray-900/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-600 to-indigo-600 text-white flex items-center justify-center font-semibold shadow-lg shadow-primary-500/30 shrink-0">
-                {(user?.name || 'S')[0]}
-                {(user?.name || 'S')[1] || ''}
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-600 to-indigo-600 text-white flex items-center justify-center font-semibold shadow-lg shadow-primary-500/30 shrink-0 overflow-hidden border border-white/20">
+                {user?.profilePic && user.profilePic !== 'undefined' ? (
+                  <img 
+                    src={user.profilePic.startsWith('http') ? `${user.profilePic}${user.profilePic.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : user.profilePic} 
+                    alt="Me" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null; 
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                ) : null}
+                <span className={user?.profilePic && user.profilePic !== 'undefined' ? 'hidden' : ''}>
+                  {(user?.name || 'S')[0]}
+                  {(user?.name || 'S')[1] || ''}
+                </span>
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-extrabold text-gray-900 dark:text-white truncate uppercase tracking-tight">{user?.name || 'Student'}</div>

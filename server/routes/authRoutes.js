@@ -16,7 +16,13 @@ import {
   getNextRollNumber
 } from '../controllers/authController.js';
 import { protect } from '../middlewares/authMiddleware.js';
+import { storage } from '../config/cloudinary.js';
+import multer from 'multer';
 
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 20 * 1024 * 1024 } // Increased to 20MB
+});
 const router = express.Router();
 
 router.post('/register', registerUser);
@@ -26,7 +32,21 @@ router.get('/leaderboard', getLeaderboard);
 // router.post('/register-face', protect, registerFace);
 router.route('/profile')
   .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .put(protect, (req, res, next) => {
+    // Explicit Multer Error Trapping
+    upload.single('profilePic')(req, res, (err) => {
+      if (err) {
+        console.error('CRITICAL MULTER FAILURE:', err);
+        return res.status(400).json({ 
+          message: 'Server failed to capture the image file.', 
+          error: err.message,
+          code: err.code || 'MULTER_ERROR'
+        });
+      }
+      // Multer success - proceed to controller
+      next();
+    });
+  }, updateUserProfile);
 router.post('/forgot-password', forgotPassword);
 router.post('/pulse', protect, updatePulse);
 router.get('/course-activity/:courseId', getCourseActivity);

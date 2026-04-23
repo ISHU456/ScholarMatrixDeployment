@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMFA } from '../../modules/mfa/MFAContext';
+import { markAttendanceForStudent } from '../../utils/gamificationStore';
 import FaceCamera from '../../modules/mfa/components/FaceCamera';
 import LocationCheck from '../../modules/mfa/components/LocationCheck';
 import BlinkCheck from '../../modules/mfa/components/BlinkCheck';
@@ -26,7 +27,7 @@ const DailyAttendance = () => {
         try {
             const userStr = localStorage.getItem('user');
             const token = userStr ? JSON.parse(userStr).token : null;
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/daily/status`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/daily/status`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStatus(res.data);
@@ -59,8 +60,8 @@ const DailyAttendance = () => {
             const token = userStr ? JSON.parse(userStr).token : null;
 
             const url = mode === 'entry' 
-                ? `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/daily/entry` 
-                : `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/daily/exit`;
+                ? `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/daily/entry` 
+                : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/daily/exit`;
 
             const response = await axios.post(url, {
                 descriptor: Array.from(mfaState.faceDescriptor || []),
@@ -70,6 +71,10 @@ const DailyAttendance = () => {
             });
 
             if (response.status === 201 || response.status === 200) {
+                // Award rewards
+                const userId = JSON.parse(userStr)._id;
+                markAttendanceForStudent({ studentId: userId });
+                
                 setShowVerification(false);
                 fetchStatus();
             }

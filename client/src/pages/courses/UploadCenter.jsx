@@ -42,10 +42,10 @@ const UploadCenter = () => {
     const fetchData = async () => {
       try {
         const [courseRes, annRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${courseId}`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${courseId}`, {
              headers: { Authorization: `Bearer ${user.token}` }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/announcements?courseId=${courseId}`)
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/announcements?courseId=${courseId}`)
         ]);
         setCourseInfo(courseRes.data);
       setAnnouncements(Array.isArray(annRes.data) ? annRes.data : (annRes.data.announcements || []));
@@ -102,7 +102,7 @@ const UploadCenter = () => {
         formData.append('extraCourseId', courseId);
         formData.append('uploadedBy', user._id);
         
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources/upload?courseId=${courseId}`, formData, {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources/upload?courseId=${courseId}`, formData, {
           headers: { 
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${user.token}`
@@ -114,7 +114,7 @@ const UploadCenter = () => {
         });
         alert('Asset deployed successfully');
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources?courseId=${courseId}`, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources?courseId=${courseId}`, {
           title: newTitle, 
           type: newType, 
           fileUrl: newUrl, 
@@ -140,7 +140,7 @@ const UploadCenter = () => {
   };
 
   const sectionTabs = [
-    { id: 'upload', label: 'Upload Hub', icon: Layout, color: 'text-primary-500 bg-primary-50 dark:bg-primary-900/20 group-hover:bg-primary-100', active: 'bg-primary-500 text-white shadow-primary-500/30' },
+    { id: 'upload', label: 'Upload Section', icon: Layout, color: 'text-primary-500 bg-primary-50 dark:bg-primary-900/20 group-hover:bg-primary-100', active: 'bg-primary-500 text-white shadow-primary-500/30' },
     { id: 'timetable', label: 'Schedule', icon: Calendar, color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100', active: 'bg-blue-500 text-white shadow-blue-500/30' },
     { id: 'ebooks', label: 'Resources', icon: Book, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 group-hover:bg-emerald-100', active: 'bg-emerald-500 text-white shadow-emerald-500/30' },
     { id: 'yt-links', label: 'Videos', icon: Youtube, color: 'text-red-500 bg-red-50 dark:bg-red-900/20 group-hover:bg-red-100', active: 'bg-red-500 text-white shadow-red-500/30' },
@@ -158,7 +158,7 @@ const UploadCenter = () => {
         isTeacher={isTeacher}
         courseId={courseId}
         showUploadForm={true}
-        setShowUploadForm={() => {}}
+        setShowUploadForm={() => navigate(`/course-inner/${courseId}`)}
         sectionTabs={sectionTabs}
         activeSection="upload"
         setActiveSection={() => {}}
@@ -178,7 +178,7 @@ const UploadCenter = () => {
               </Link>
               <div>
                  <h1 className="text-xl font-semibold dark:text-white uppercase tracking-tighter">{courseInfo?.name} [{courseInfo?.code || courseId}]</h1>
-                 <p className="text-xs font-semibold text-primary-500 uppercase tracking-wide">Faculty Upload Hub</p>
+                 <p className="text-xs font-semibold text-primary-500 uppercase tracking-wide">Faculty Upload Section</p>
               </div>
            </div>
            <div className="flex items-center gap-4">
@@ -198,7 +198,7 @@ const UploadCenter = () => {
            <div className="w-full max-w-4xl space-y-8 mt-12">
               <ContentUploader 
                  showUploadForm={true}
-                 setShowUploadForm={() => {}}
+                 setShowUploadForm={() => navigate(`/course-inner/${courseId}`)}
                  newTitle={newTitle}
                  setNewTitle={setNewTitle}
                  newType={newType}

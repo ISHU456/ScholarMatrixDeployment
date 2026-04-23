@@ -1,4 +1,4 @@
-const API_URL = `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth`;
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth`;
 
 /**
  * Service for face authentication API calls

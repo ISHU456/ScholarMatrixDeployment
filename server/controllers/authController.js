@@ -5,7 +5,7 @@ import Course from '../models/Course.js';
 import Department from '../models/Department.js';
 import Submission from '../models/Submission.js';
 import generateToken from '../utils/generateToken.js';
-import { cloudinary } from '../config/cloudinary.js';
+import { cloudinary, verifyCloudinaryConfig } from '../config/cloudinary.js';
 import mongoose from 'mongoose';
 import MFASession from '../models/MFASession.js';
 import SystemSettings from '../models/SystemSettings.js';
@@ -34,11 +34,20 @@ export const registerUser = async (req, res) => {
     }
 
     let finalProfilePic = profilePic;
+    let finalProfileImage = { url: '', publicId: '' };
+
     if (profilePic && profilePic.startsWith('data:image')) {
       const uploadRes = await cloudinary.uploader.upload(profilePic, {
-        folder: 'lms_profiles',
+        folder: 'lms_images',
+        transformation: [
+          { width: 400, height: 400, crop: 'fill', gravity: 'face' }
+        ]
       });
       finalProfilePic = uploadRes.secure_url;
+      finalProfileImage = {
+        url: uploadRes.secure_url,
+        publicId: uploadRes.public_id
+      };
     }
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -60,6 +69,7 @@ export const registerUser = async (req, res) => {
       name, email: normalizedEmail, password, role, dob, address, contact, 
       enrollmentNumber, batch, department, year, semester, rollNumber,
       employeeId, securityQuestion, securityAnswer, profilePic: finalProfilePic,
+      profileImage: finalProfileImage,
       coins: initialCoins,
       isEmailVerified: userEmailVerified,
       isActive: finalIsActive,
@@ -179,6 +189,13 @@ export const getUserProfile = async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 export const updateUserProfile = async (req, res) => {
+  const { isConfigured, cloud_name } = verifyCloudinaryConfig();
+  if (!isConfigured) {
+    return res.status(500).json({ 
+      message: 'CRITICAL ERROR: Cloudinary is not configured on this server. Please check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.' 
+    });
+  }
+  
   try {
     const user = await User.findById(req.user._id);
     if (user) {
@@ -186,33 +203,109 @@ export const updateUserProfile = async (req, res) => {
       user.contact = req.body.contact || user.contact;
       user.address = req.body.address || user.address;
       user.department = req.body.department || user.department;
+      user.dob = req.body.dob || user.dob;
+      user.aboutMe = req.body.aboutMe || user.aboutMe;
+      user.qualification = req.body.qualification || user.qualification;
       
-      if (req.body.profilePic && req.body.profilePic.startsWith('data:image')) {
-        const uploadRes = await cloudinary.uploader.upload(req.body.profilePic, {
-          folder: 'lms_profiles',
-        });
-        user.profilePic = uploadRes.secure_url;
-      } else {
-        user.profilePic = req.body.profilePic || user.profilePic;
+      // Handle Profile Picture
+      if (req.file) {
+        try {
+          console.log("--- CLOUDINARY UPLOAD SUCCESS ---");
+          user.profilePic = req.file.path;
+          user.profileImage = {
+            url: req.file.path,
+            publicId: req.file.filename
+          };
+        } catch (uploadError) {
+          console.error("ERROR PROCESSING UPLOADED FILE:", uploadError);
+        }
+      } else if (req.body.profilePic && req.body.profilePic.startsWith('data:image')) {
+        try {
+          const uploadRes = await cloudinary.uploader.upload(req.body.profilePic, {
+            folder: 'lms_images',
+            transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
+          });
+          user.profilePic = uploadRes.secure_url;
+          user.profileImage = {
+            url: uploadRes.secure_url,
+            publicId: uploadRes.public_id
+          };
+        } catch (base64Error) {
+          console.error("BASE64 UPLOAD ERROR:", base64Error);
+        }
+      } else if (req.body.profilePic === '') {
+        user.profilePic = '';
+        user.profileImage = { url: '', publicId: '' };
       }
 
-      user.emergencyContact = req.body.emergencyContact || user.emergencyContact;
-      user.parentInfo = req.body.parentInfo || user.parentInfo;
-      
-      if (req.body.password) {
-        user.password = req.body.password;
+      // Role-Specific Academic Fields
+      if (user.role === 'student') {
+        user.batch = req.body.batch || user.batch;
+        user.semester = req.body.semester ? Number(req.body.semester) : user.semester;
+        user.rollNumber = req.body.rollNumber || user.rollNumber;
+        user.year = req.body.year ? Number(req.body.year) : user.year;
+      } else if (['teacher', 'hod', 'faculty'].includes(user.role)) {
+        user.employeeId = req.body.employeeId || user.employeeId;
+        if (req.body.expertise) {
+           user.expertise = typeof req.body.expertise === 'string' 
+             ? JSON.parse(req.body.expertise) 
+             : req.body.expertise;
+        }
+      }
+
+      // Parse JSON strings from FormData for complex fields
+      if (req.body.emergencyContact) {
+        try {
+          user.emergencyContact = typeof req.body.emergencyContact === 'string' 
+            ? JSON.parse(req.body.emergencyContact) 
+            : req.body.emergencyContact;
+        } catch (e) { console.error("EMERGENCY CONTACT PARSE ERROR:", e); }
+      }
+
+      if (req.body.parentInfo) {
+        try {
+          user.parentInfo = typeof req.body.parentInfo === 'string' 
+            ? JSON.parse(req.body.parentInfo) 
+            : req.body.parentInfo;
+        } catch (e) { console.error("PARENT INFO PARSE ERROR:", e); }
+      }
+
+      // Handle Password Update if provided via a separate password change flow
+      if (req.body.newPassword && req.body.newPassword.length >= 6) {
+        user.password = req.body.newPassword;
       }
 
       if (req.body.deactivationRequested) {
         user.deactivationRequested = true;
       }
 
-      const updatedUser = await user.save();
-      res.json(updatedUser);
+      try {
+        const updatedUser = await user.save();
+        console.log(`DATABASE PERSISTENCE SUCCESS: ${user.name}`);
+        res.json(updatedUser);
+      } catch (dbError) {
+        console.error("TRY-CATCH CAUGHT MONGODB SAVE ERROR:", dbError);
+        
+        // Handle Duplicate Key Errors (e.g., enrollmentNumber already exists)
+        if (dbError.code === 11000) {
+          const field = Object.keys(dbError.keyPattern || {})[0] || 'field';
+          return res.status(400).json({ 
+            message: `Duplicate field error: The ${field} you provided is already in use by another account.`, 
+            error: dbError.message 
+          });
+        }
+
+        res.status(400).json({ 
+          message: 'MongoDB failed to save the profile.', 
+          error: dbError.message,
+          details: dbError.errors 
+        });
+      }
     } else {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
+    console.error("GLOBAL TRY-CATCH CAUGHT ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };

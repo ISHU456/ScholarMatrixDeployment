@@ -11,9 +11,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 import CommentItem from './CommentItem';
 
-const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com') + '');
+const socket = io('' + (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '');
 
-const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com') + '/api';
+const API_BASE = '' + (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '/api';
 
 const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
   const [reactions, setReactions] = useState(announcement.reactionsCount || {
@@ -29,7 +29,6 @@ const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
   const [commentText, setCommentText] = useState('');
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
 
   useEffect(() => {
     // Determine current user's reaction
@@ -95,12 +94,12 @@ const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
     }
   };
 
-  const handleReact = async (reactionType) => {
+  const handleReact = async (reactionType, fromPicker = false) => {
     try {
       const res = await axios.post(`${API_BASE}/announcements/${announcement._id}/react`, { reactionType }, { headers });
       setReactions(res.data.reactionsCount);
       setCurrentReaction(res.data.currentReaction);
-      setShowReactionPicker(false);
+      if (fromPicker) setShowReactionPicker(false);
     } catch (err) {
       console.error(err);
     }
@@ -169,22 +168,6 @@ const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
     } catch (err) {
       console.error(err);
     }
-  };
-
-  const handleShare = () => {
-    setShowShareMenu(!showShareMenu);
-  };
-
-  const copyToClipboard = () => {
-    const url = `${window.location.origin}/announcements?id=${announcement._id}`;
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
-    setShowShareMenu(false);
-  };
-
-  const windowOpenShare = (shareUrl) => {
-    window.open(shareUrl, '_blank', 'width=600,height=400');
-    setShowShareMenu(false);
   };
 
   const renderMedia = () => {
@@ -408,7 +391,10 @@ const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
             <button 
               onMouseEnter={() => setShowReactionPicker(true)}
               onMouseLeave={() => setTimeout(() => setShowReactionPicker(false), 2000)}
-              onClick={() => handleReact('like')}
+              onClick={() => {
+                handleReact('like', false);
+                if (window.innerWidth < 768) setShowReactionPicker(true);
+              }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold ${currentReaction ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500'}`}
             >
               {currentReaction ? reactionEmojis[currentReaction] : <Heart size={18} className={isLiked ? 'fill-red-500 text-red-500' : ''} />}
@@ -429,7 +415,7 @@ const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
                   {Object.entries(reactionEmojis).map(([type, emoji]) => (
                     <button 
                       key={type}
-                      onClick={() => handleReact(type)}
+                      onClick={(e) => { e.stopPropagation(); handleReact(type, true); }}
                       className={`text-2xl hover:scale-125 transition-transform p-1 rounded-lg ${currentReaction === type ? 'bg-primary-50 dark:bg-primary-900/30' : ''}`}
                     >
                       {emoji}
@@ -449,48 +435,7 @@ const PostCard = ({ announcement, user, onUpdate, onDelete }) => {
           </button>
         </div>
 
-        <div className="relative">
-          <button 
-            onClick={handleShare}
-            className={`p-2 rounded-xl transition-colors font-bold ${showShareMenu ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400'}`}
-          >
-            <Share2 size={18} />
-          </button>
-          
-          <AnimatePresence>
-            {showShareMenu && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                className="absolute bottom-full right-0 mb-3 w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden text-sm"
-              >
-                <div className="py-2">
-                  <span className="px-4 py-1 text-xs font-semibold uppercase text-gray-400 tracking-wide block border-b border-gray-50 dark:border-gray-800 pb-2 mb-1">Share to...</span>
-                  
-                  <button onClick={() => windowOpenShare(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.origin + '/announcements?id=' + announcement._id)}&text=${encodeURIComponent(announcement.title || 'Check out this announcement!')}`)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 transition-colors font-bold">
-                    <Twitter size={14} className="text-blue-400" /> Twitter / X
-                  </button>
-                  <button onClick={() => windowOpenShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + '/announcements?id=' + announcement._id)}`)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 transition-colors font-bold">
-                    <Linkedin size={14} className="text-blue-700" /> LinkedIn
-                  </button>
-                  <button onClick={() => windowOpenShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + '/announcements?id=' + announcement._id)}`)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 transition-colors font-bold border-b border-gray-50 dark:border-gray-800">
-                    <Facebook size={14} className="text-blue-600" /> Facebook
-                  </button>
-                  
-                  <button onClick={copyToClipboard}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 mt-1 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-primary-600 transition-colors font-semibold uppercase tracking-wider text-xs">
-                    <Link2 size={14} /> Copy Link
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
-      </div>
 
       {/* Comment Section */}
       <AnimatePresence>

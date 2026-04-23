@@ -12,7 +12,7 @@ const MFAVerify = () => {
         // If coming from login with tempToken
         const state = location.state;
         if (state?.requires2FA && state?.tempToken) {
-            initiateMFA(state);
+            initiateMFA({ ...state, skipLocation: true });
         } else if (!mfaState.requires2FA) {
             // If accessed directly without data, redirect to login
             navigate('/login');

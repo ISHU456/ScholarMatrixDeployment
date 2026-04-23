@@ -22,8 +22,9 @@ const DashboardOverview = ({ user }) => {
   const [activeCourseStudents, setActiveCourseStudents] = useState([]);
   const [isStudentsLoading, setIsStudentsLoading] = useState(false);
   const [markingId, setMarkingId] = useState(null);
-  const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
   const [isMounted, setIsMounted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   const navigate = useNavigate();
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -32,29 +33,17 @@ const DashboardOverview = ({ user }) => {
     if (user?.token) {
       setIsMounted(true);
       fetchStats();
-      fetchLeaderboard();
-      // Real-time update simulation (or setup polling/socket listener)
       const interval = setInterval(() => {
         fetchStats();
-        fetchLeaderboard();
-      }, 60000); // 1-minute updates
+      }, 60000); 
       return () => clearInterval(interval);
     }
   }, [user?.token]);
 
-  const fetchLeaderboard = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/leaderboard`);
-      setGlobalLeaderboard(res.data);
-    } catch (err) {
-      console.error("Failed to fetch leaderboard in dashboard overview");
-    }
-  };
-
   const fetchStats = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/stats/teacher`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/stats/teacher`, config);
       setStats(res.data);
       if (res.data.length > 0) {
         fetchActiveCourseStudents(res.data[activeCourseIndex].courseCode);
@@ -70,7 +59,7 @@ const DashboardOverview = ({ user }) => {
     setIsStudentsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${courseCode}/students`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${courseCode}/students`, config);
       setActiveCourseStudents(res.data);
     } catch (error) {
       console.error('Error fetching course students:', error);
@@ -82,6 +71,7 @@ const DashboardOverview = ({ user }) => {
   useEffect(() => {
     if (stats.length > 0 && stats[activeCourseIndex]) {
       fetchActiveCourseStudents(stats[activeCourseIndex].courseCode);
+      setCurrentPage(1); // Reset pagination on course change
     }
   }, [activeCourseIndex]);
 
@@ -98,13 +88,12 @@ const DashboardOverview = ({ user }) => {
     try {
       const course = stats[activeCourseIndex];
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/bulk-mark`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/bulk-mark`, {
         courseId: course.courseId,
         date: todayStr,
-        semester: course.semester || 1, // Defaulting to 1 if not found
+        semester: course.semester || 1,
         attendanceData: [{ studentId, status, remarks: 'Quick mark from dashboard' }]
       }, config);
-      // Refresh students to reflect updated progress/stats if needed
       fetchActiveCourseStudents(course.courseCode);
       fetchStats(); 
     } catch (error) {
@@ -114,14 +103,9 @@ const DashboardOverview = ({ user }) => {
     }
   };
 
-  const currentCourse = stats[activeCourseIndex] || null;
-
-  // Pie chart data
-  const pieData = currentCourse ? [
-    { name: 'Active', value: currentCourse.activeStudents, color: '#10b981' },
-    { name: 'Restricted', value: currentCourse.restrictedStudents, color: '#f59e0b' },
-    { name: 'Blocked', value: 0, color: '#f43f5e' } // For demo
-  ].filter(d => d.value > 0) : [];
+  // Pagination logic
+  const totalPages = Math.ceil(activeCourseStudents.length / itemsPerPage);
+  const paginatedStudents = activeCourseStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   if (isLoading) {
     return (
@@ -133,9 +117,6 @@ const DashboardOverview = ({ user }) => {
 
   return (
     <div className="space-y-8">
-      {/* Alert Banner for Low Attendance */}
-
-      {/* Main Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {[
           { label: 'Network Reach', value: totalStudents, trend: '+12%', icon: Users, accent: 'bg-indigo-50 text-indigo-600', color: '#4361ee' },
@@ -161,7 +142,6 @@ const DashboardOverview = ({ user }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left: Authorized Governance Nodes Matrix */}
         <div className="lg:col-span-1 space-y-4">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
@@ -200,16 +180,14 @@ const DashboardOverview = ({ user }) => {
           </div>
         </div>
 
-        {/* Center: Interactive Intelligence Hub */}
         <div className="lg:col-span-2 space-y-8">
-           {currentCourse ? (
+           {stats[activeCourseIndex] ? (
              <>
-               {/* Quick Intelligence Summary */}
                <div className="grid grid-cols-3 gap-4">
                   {[
-                    { label: 'Unit Health', value: `${currentCourse.avgAttendance}%`, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                    { label: 'Risk Factor', value: currentCourse.studentsBelow75, color: 'text-rose-500', bg: 'bg-rose-50' },
-                    { label: 'Isolation', value: currentCourse.restrictedStudents, color: 'text-amber-500', bg: 'bg-amber-50' }
+                    { label: 'Unit Health', value: `${stats[activeCourseIndex].avgAttendance}%`, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                    { label: 'Risk Factor', value: stats[activeCourseIndex].studentsBelow75, color: 'text-rose-500', bg: 'bg-rose-50' },
+                    { label: 'Isolation', value: stats[activeCourseIndex].restrictedStudents, color: 'text-amber-500', bg: 'bg-amber-50' }
                   ].map((mini, midx) => (
                     <div key={midx} className={`${mini.bg} dark:bg-gray-900 dark:border dark:border-gray-800 p-4 rounded-[28px] text-center`}>
                        <p className={`text-xl font-semibold ${mini.color}`}>{mini.value}</p>
@@ -218,10 +196,7 @@ const DashboardOverview = ({ user }) => {
                   ))}
                </div>
 
-
-               {/* Multi-Metric Visualization Grid */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {/* Stacked Attendance Velocity */}
                  <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden">
                     <div className="flex items-center justify-between mb-8">
                        <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-2"><TrendingUp size={14} className="text-indigo-500"/> Attendance Flux</h3>
@@ -248,7 +223,6 @@ const DashboardOverview = ({ user }) => {
                     </div>
                  </div>
 
-                 {/* Bar Chart: Subject Integrity Comparison */}
                  <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                        <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-2"><LayoutGrid size={14} className="text-emerald-500"/> Peer Comparison</h3>
@@ -280,7 +254,6 @@ const DashboardOverview = ({ user }) => {
            )}
         </div>
 
-        {/* Right: Active Units Action Sidebar */}
         <div className="lg:col-span-1 space-y-6">
            <div className="bg-white dark:bg-gray-900 p-6 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col h-[600px]">
              <div className="flex items-center justify-between mb-6 shrink-0">
@@ -288,14 +261,14 @@ const DashboardOverview = ({ user }) => {
                  <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Live Unit Matrix</h3>
                  <p className="text-xs font-bold text-gray-400 mt-0.5 uppercase tracking-tighter">Real-time status updates</p>
                </div>
-               <span className="text-xs font-semibold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-full uppercase tabular-nums">{activeCourseStudents.length}</span>
+               <span className="text-xs font-semibold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-full uppercase tabular-nums">Total: {activeCourseStudents.length}</span>
              </div>
              
-             <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+             <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar mb-4">
                {isStudentsLoading ? (
                  [1,2,3,4,5,6].map(i => <div key={i} className="h-16 bg-gray-50 dark:bg-gray-800/40 rounded-3xl animate-pulse"/>)
                ) : activeCourseStudents.length > 0 ? (
-                 activeCourseStudents.map((student, sidx) => (
+                 paginatedStudents.map((student, sidx) => (
                    <motion.div key={student._id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: sidx * 0.05 }}
                      className="flex items-center justify-between p-3 rounded-3xl hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all border border-transparent hover:border-gray-100 group">
                      <div className="flex items-center gap-3">
@@ -327,43 +300,30 @@ const DashboardOverview = ({ user }) => {
                )}
              </div>
 
-              <button 
-               onClick={() => navigate('/attendance')}
-               className="mt-6 w-full py-4 bg-gray-900 dark:bg-white dark:text-gray-900 text-white text-xs font-semibold uppercase tracking-wide rounded-[2rem] hover:opacity-90 hover:-translate-y-1 active:translate-y-0 transition-all shadow-2xl shadow-gray-200 dark:shadow-none shrink-0">
-                Access Full Control View
-              </button>
-
-              <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-800 shrink-0">
-                <div className="flex items-center justify-between mb-6">
-                   <h3 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-2"><Trophy size={14} className="text-amber-500"/> Global Top Achievers</h3>
-                   <span className="text-xs font-semibold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full uppercase italic">Performance XP</span>
-                </div>
-                <div className="space-y-4">
-                   {globalLeaderboard.slice(0, 5).map((l, lidx) => (
-                     <div key={l._id} className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-xs font-semibold text-gray-400 border border-transparent group-hover:border-amber-200 transition-all">
-                              {lidx + 1}
-                           </div>
-                           <div className="min-w-0">
-                              <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase truncate tracking-tight">{l.name}</p>
-                              <p className="text-[7px] font-bold text-gray-400 uppercase tracking-wide">{l.department} · SEM {l.semester}</p>
-                           </div>
-                        </div>
-                        <div className="text-right">
-                           <p className="text-xs font-semibold text-amber-500">{l.xp}</p>
-                        </div>
-                     </div>
-                   ))}
-                </div>
-              </div>
-            </div>
+             {totalPages > 1 && (
+               <div className="flex items-center justify-between gap-4 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800 shrink-0">
+                 <button 
+                   disabled={currentPage === 1}
+                   onClick={() => setCurrentPage(p => p - 1)}
+                   className="flex-1 py-3 bg-gray-100 dark:bg-white/5 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-gray-500 disabled:opacity-30 transition-all"
+                 >
+                   Previous
+                 </button>
+                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{currentPage} / {totalPages}</span>
+                 <button 
+                   disabled={currentPage === totalPages}
+                   onClick={() => setCurrentPage(p => p + 1)}
+                   className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-indigo-600/20 disabled:opacity-30 transition-all"
+                 >
+                   Next
+                 </button>
+               </div>
+             )}
+           </div>
         </div>
       </div>
     </div>
   );
 };
-
-const UserMinus = ({ size, className }) => <Users size={size} className={className} />; // Placeholder for specific icons if needed
 
 export default DashboardOverview;

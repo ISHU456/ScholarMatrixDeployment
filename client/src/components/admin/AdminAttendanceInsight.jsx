@@ -18,10 +18,10 @@ const AdminAttendanceInsight = ({ userId, type, user }) => {
             try {
                 const base = (user.role === 'admin' || user.role === 'hod') ? 'admin' : 'auth';
                 const [hRes, rRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/${base}/attendance/history?userId=${userId}&type=${type}`, {
+                    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/${base}/attendance/history?userId=${userId}&type=${type}`, {
                         headers: { Authorization: `Bearer ${user.token}` }
                     }),
-                    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/${base}/attendance/annual-report?userId=${userId}&type=${type}`, {
+                    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/${base}/attendance/annual-report?userId=${userId}&type=${type}`, {
                         headers: { Authorization: `Bearer ${user.token}` }
                     })
                 ]);

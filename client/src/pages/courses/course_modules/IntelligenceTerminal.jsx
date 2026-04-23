@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Layout, Plus, Zap, Trash2, Edit3, X, Check, Info, Youtube, Book, ClipboardCheck, Download, CheckCircle, Clock, Map } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AssignmentHub from './AssignmentHub';
+import { forceDownload } from '../../../utils/downloadHelper';
 
 const IntelligenceTerminal = ({
   activeSection,
@@ -41,10 +43,24 @@ const IntelligenceTerminal = ({
   };
 
   const saveEdit = async (idx) => {
-    const updated = [...timetable];
-    updated[idx] = editFormData;
-    if (await updateScheduleInDB({ schedule: updated })) {
-        setEditingIdx(null);
+    if (idx >= 1000) {
+        try {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources/${editFormData._id}`, editFormData, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+            setEditingIdx(null);
+            // Alert user or refresh
+            alert('Resource updated');
+            window.location.reload(); // Quick way to refresh for now, or pass refresh function
+        } catch (err) {
+            alert('Update failed');
+        }
+    } else {
+        const updated = [...timetable];
+        updated[idx] = editFormData;
+        if (await updateScheduleInDB({ schedule: updated })) {
+            setEditingIdx(null);
+        }
     }
   };
 
@@ -52,7 +68,7 @@ const IntelligenceTerminal = ({
     <div className="flex-1 min-h-0 glass p-6 rounded-2xl border border-white dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 shadow-xl flex flex-col gap-4 overflow-hidden">
        <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold dark:text-white uppercase tracking-tighter flex items-center gap-3">
-            <Layout size={18} className="text-primary-500"/> Course Intelligence Terminal
+            <Layout size={18} className="text-primary-500"/> Course Detail Terminal
           </h3>
           {isTeacher && (
             <button 
@@ -153,59 +169,94 @@ const IntelligenceTerminal = ({
             return filtered.map((item, idx) => (
               <div 
                  key={item._id} 
-                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group relative overflow-hidden font-sans ${previewItem?.id === item._id ? 'bg-primary-50 border-primary-500 dark:bg-primary-900/30' : 'bg-white/40 dark:bg-gray-800/10 border-transparent dark:border-gray-800 hover:bg-white/90 dark:hover:bg-gray-800/80 hover:shadow-xl hover:border-primary-500/30'}`}
+                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group relative overflow-hidden font-sans ${previewItem?.id === item._id || editingIdx === (idx + 1000) ? 'bg-primary-50 border-primary-500 dark:bg-primary-900/30' : 'bg-white/40 dark:bg-gray-800/10 border-transparent dark:border-gray-800 hover:bg-white/90 dark:hover:bg-gray-800/80 hover:shadow-xl hover:border-primary-500/30'}`}
               >
-                <div className="flex items-center gap-4 min-w-0 w-full md:w-auto flex-1">
-                   <div className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl transition-all duration-500 group-hover:scale-105 ${item.type === 'youtube' || item.type === 'yt' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                     {(item.type === 'youtube' || item.type === 'yt') ? <Youtube size={20} /> : <Book size={20} />}
+                {editingIdx === (idx + 1000) ? (
+                  <div className="w-full space-y-4">
+                    <input type="text" value={editFormData.title} onChange={e=>setEditFormData({...editFormData, title: e.target.value})} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs font-bold uppercase outline-none focus:ring-1 ring-primary-500" placeholder="Title" />
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-1">
+                          <label className="text-[8px] font-bold text-gray-400 uppercase tracking-widest ml-1">XP Points</label>
+                          <input type="number" value={editFormData.points} onChange={e=>setEditFormData({...editFormData, points: e.target.value})} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-1 ring-primary-500" />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[8px] font-bold text-gray-400 uppercase tracking-widest ml-1">Coins Reward</label>
+                          <input type="number" value={editFormData.coinsReward} onChange={e=>setEditFormData({...editFormData, coinsReward: e.target.value})} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-1 ring-primary-500" />
+                       </div>
+                    </div>
+                    <div className="flex gap-2">
+                       <button onClick={()=>saveEdit(idx + 1000)} className="flex-1 py-2 bg-primary-600 text-white rounded-lg font-semibold text-xs uppercase tracking-wide hover:bg-primary-700">Save Changes</button>
+                       <button onClick={cancelEditing} className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><X size={14}/></button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4 min-w-0 w-full md:w-auto flex-1">
+                       <div className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl transition-all duration-500 group-hover:scale-105 ${item.type === 'youtube' || item.type === 'yt' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                         {(item.type === 'youtube' || item.type === 'yt') ? <Youtube size={20} /> : <Book size={20} />}
+                       </div>
+                       <div className="min-w-0 w-full">
+                         <h4 className="text-[13px] font-semibold dark:text-white break-words whitespace-normal uppercase tracking-tight mb-1 group-hover:text-primary-600 transition-colors">{item.title}</h4>
+                         <div className="flex flex-wrap items-center gap-2">
+                             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md uppercase tracking-wide truncate max-w-full">{(item.type || 'PROTOCOL').toUpperCase()} ASSET</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                               <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-lg uppercase tracking-wider">{item.points || 15} XP</span>
+                               <span className="text-[10px] font-bold text-amber-500 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-lg uppercase tracking-wider">{item.coinsReward || 5} COINS</span>
+                            </div>
+                            {completedItems.has(item._id) ? (
+                              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0 transition-colors">
+                                 <CheckCircle size={10} /> SYNCED
+                              </span>
+                            ) : (
+                              isStudent && (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleMarkComplete(item); }}
+                                  className="flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/10 hover:bg-primary-100 dark:hover:bg-primary-900/30 px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0 transition-colors cursor-pointer"
+                                >
+                                  <div className="w-2.5 h-2.5 border border-primary-500 rounded-sm"></div> MARK CHECKPOINT
+                                </button>
+                              )
+                            )}
+                         </div>
+                       </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 shrink-0 self-start md:self-center">
+                      {(item.fileUrl || item.fileData) && item.type !== 'youtube' && item.type !== 'yt' && (
+                        <button
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            const url = item.fileUrl || `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/resources/file/${item._id}`;
+                            const extension = item.fileType || 'pdf';
+                            forceDownload(url, `${item.title}.${extension}`);
+                          }}
+                          className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all"
+                          title="Download"
+                        >
+                          <Download size={14} />
+                        </button>
+                      )}
+                      {activeSection !== 'assignments' && (
+                        <button 
+                          onClick={()=>handlePreview(item)} 
+                          className={`px-4 py-2 rounded-lg font-semibold text-xs uppercase shadow-md transition-all tracking-wide ${previewItem?.id === item._id ? 'bg-primary-600 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-primary-600 hover:text-white'}`}
+                        >
+                          {previewItem?.id === item._id ? 'VIEWING' : 'PREVIEW'}
+                        </button>
+                      )}
+                      {isTeacher && (
+                        <>
+                          <button onClick={(e)=>{e.stopPropagation(); startEditing(idx + 1000, item);}} className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition-all">
+                            <Edit3 size={14}/>
+                          </button>
+                          <button onClick={(e)=>{e.stopPropagation(); handleDelete(item);}} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                            <Trash2 size={14}/>
+                          </button>
+                        </>
+                      )}
                    </div>
-                   <div className="min-w-0 w-full">
-                     <h4 className="text-[13px] font-semibold dark:text-white break-words whitespace-normal uppercase tracking-tight mb-1 group-hover:text-primary-600 transition-colors">{item.title}</h4>
-                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md uppercase tracking-wide truncate max-w-full">{(item.type || 'PROTOCOL').toUpperCase()} ASSET</span>
-                        <span className="text-xs font-semibold text-primary-500 bg-primary-100 dark:bg-primary-900/30 px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0">{item.points || 15} XP ACTIVE</span>
-                        {completedItems.has(item._id) ? (
-                          <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0 transition-colors">
-                             <CheckCircle size={10} /> SYNCED
-                          </span>
-                        ) : (
-                          isStudent && (
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); handleMarkComplete(item); }}
-                              className="flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/10 hover:bg-primary-100 dark:hover:bg-primary-900/30 px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0 transition-colors cursor-pointer"
-                            >
-                              <div className="w-2.5 h-2.5 border border-primary-500 rounded-sm"></div> MARK CHECKPOINT
-                            </button>
-                          )
-                        )}
-                     </div>
-                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2 shrink-0 self-start md:self-center">
-                  {(item.fileUrl || item.fileData) && item.type !== 'youtube' && item.type !== 'yt' && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); window.open(item.fileUrl || `${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/resources/file/${item._id}`, '_blank'); }}
-                      className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all"
-                      title="Download"
-                    >
-                      <Download size={14} />
-                    </button>
-                  )}
-                  {activeSection !== 'assignments' && (
-                    <button 
-                      onClick={()=>handlePreview(item)} 
-                      className={`px-4 py-2 rounded-lg font-semibold text-xs uppercase shadow-md transition-all tracking-wide ${previewItem?.id === item._id ? 'bg-primary-600 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-primary-600 hover:text-white'}`}
-                    >
-                      {previewItem?.id === item._id ? 'VIEWING' : 'PREVIEW'}
-                    </button>
-                  )}
-                  {isTeacher && (
-                    <button onClick={(e)=>{e.stopPropagation(); handleDelete(item);}} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                      <Trash2 size={14}/>
-                    </button>
-                  )}
-               </div>
-             </div>
+                  </>
+                )}
+              </div>
            ));
          })()
        )}

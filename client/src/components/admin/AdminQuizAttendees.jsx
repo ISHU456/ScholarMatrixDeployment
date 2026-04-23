@@ -11,7 +11,7 @@ const AdminQuizAttendees = ({ quizId, onClose, user }) => {
   const fetchAttendees = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}/attendees`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quizId}/attendees`, config);
       setAttendees(res.data);
     } catch (err) {
       console.error("Failed to fetch attendees", err);
@@ -29,7 +29,7 @@ const AdminQuizAttendees = ({ quizId, onClose, user }) => {
      
      try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}/attempts/${userId}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quizId}/attempts/${userId}`, config);
         alert("Attempt reset! The student can now participate again.");
         fetchAttendees(); // Refresh list
      } catch (err) {

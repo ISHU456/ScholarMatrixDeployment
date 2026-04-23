@@ -17,7 +17,7 @@ const OrderManager = () => {
     setIsLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/orders`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/orders`, config);
       setOrders(res.data);
     } catch (err) {
       console.error("Failed to fetch all orders", err);
@@ -33,7 +33,7 @@ const OrderManager = () => {
   const updateOrderStatus = async (orderId, status) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.patch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/orders/${orderId}`, { status }, config);
+      await axios.patch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/orders/${orderId}`, { status }, config);
       fetchOrders(); // Refresh
     } catch (err) {
       alert("Failed to update order status");

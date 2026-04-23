@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import { getGamificationState } from '../utils/gamificationStore';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 const Navbar = ({ darkMode, toggleDarkMode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,15 +19,17 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
+    const socket = io((import.meta.env.VITE_API_URL || 'http://localhost:5001'), { transports: ['websocket'] });
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/public/settings`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/public/settings`);
         setSettings(data);
       } catch (err) {
         console.error("Failed to load global broadcast settings.");
       }
     };
     fetchSettings();
+    return () => socket.disconnect();
   }, []);
 
   useEffect(() => {
@@ -211,13 +214,21 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                       className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all ${isProfileOpen ? 'bg-primary-50 dark:bg-primary-900/20 ring-2 ring-primary-500/20' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                     >
                       <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary-500/20 shadow-sm shrink-0">
-                        {user?.profilePic ? (
-                          <img src={user.profilePic} alt="Me" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full bg-primary-500 flex items-center justify-center text-white">
-                            <UserCircle size={16} />
-                          </div>
-                        )}
+                        {user?.profilePic && user.profilePic !== 'undefined' ? (
+                          <img 
+                            src={user.profilePic.startsWith('http') ? `${user.profilePic}${user.profilePic.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : user.profilePic} 
+                            alt="Me" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null; 
+                              e.target.style.display = 'none';
+                              if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-full h-full bg-primary-500 flex items-center justify-center text-white ${user?.profilePic && user.profilePic !== 'undefined' ? 'hidden' : ''}`}>
+                          <UserCircle size={16} />
+                        </div>
                       </div>
                     </button>
 

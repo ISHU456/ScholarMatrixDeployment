@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { forceDownload } from '../../utils/downloadHelper';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMyResults } from '../../features/results/resultSlice';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,15 +43,12 @@ const StudentResults = () => {
             </div>
             
             {studentResults?.pdfUrl && (
-                <a 
-                  href={studentResults.pdfUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  download={`${user.rollNumber}_Sem${user.semester}.pdf`}
+                <button 
+                  onClick={() => forceDownload(studentResults.pdfUrl, `${user.rollNumber}_Sem${user.semester}.pdf`)}
                   className="w-full sm:w-auto px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-semibold text-xs uppercase tracking-wide shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 shrink-0 animate-pulse"
                 >
                   <Download size={16} /> Download Official Transcript
-                </a>
+                </button>
             )}
           </motion.div>
       )}
@@ -80,14 +78,12 @@ const StudentResults = () => {
              )}
              <div className="flex flex-col gap-4">
                 {studentResults?.pdfUrl ? (
-                   <a 
-                     href={studentResults.pdfUrl}
-                     target="_blank"
-                     rel="noreferrer"
+                   <button 
+                     onClick={() => forceDownload(studentResults.pdfUrl, `${user.rollNumber}_Sem${user.semester}.pdf`)}
                      className="w-full p-6 bg-emerald-600 text-white rounded-[2rem] font-semibold text-xs uppercase tracking-wide flex items-center justify-center gap-3 transition-all hover:scale-[1.02] shadow-2xl"
                    >
-                     <Globe size={20} /> View Cloud Record
-                   </a>
+                     <Globe size={20} /> Download Cloud Record
+                   </button>
                 ) : (
                    <div className="w-full p-6 bg-slate-800 text-slate-500 rounded-[2rem] font-semibold text-xs uppercase tracking-wide flex items-center justify-center gap-3 cursor-not-allowed">
                      <Download size={20} /> Marksheet Unavailable

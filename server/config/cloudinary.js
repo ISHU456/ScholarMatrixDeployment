@@ -5,9 +5,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: (process.env.CLOUDINARY_CLOUD_NAME || '').trim(),
+  api_key: (process.env.CLOUDINARY_API_KEY || '').trim(),
+  api_secret: (process.env.CLOUDINARY_API_SECRET || '').trim(),
+  secure: true,
 });
 
 console.log("Institutional Asset Gateway Configured:", {
@@ -38,9 +39,24 @@ const storage = new CloudinaryStorage({
     return {
       folder: folder,
       resource_type: resource_type,
-      public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
+      format: fileType === 'image' ? 'webp' : undefined, // Auto-convert images to optimized webp
+      allowed_formats: fileType === 'image' ? ['jpg', 'png', 'jpeg', 'gif', 'webp'] : undefined,
+      public_id: `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      transformation: fileType === 'image' ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }] : undefined
     };
   },
 });
+
+export const verifyCloudinaryConfig = () => {
+  const config = cloudinary.config();
+  const isMissing = !config.cloud_name || !config.api_key || !config.api_secret || config.api_secret === '';
+  if (isMissing) {
+    console.error("CRITICAL: Cloudinary Config is missing or invalid in this environment.");
+  }
+  return {
+    isConfigured: !isMissing,
+    cloud_name: config.cloud_name
+  };
+};
 
 export { cloudinary, storage };

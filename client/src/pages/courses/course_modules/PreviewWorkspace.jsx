@@ -113,12 +113,31 @@ const PreviewWorkspace = ({
       case 'pdf':
         return (
           <SimplePreviewWrapper>
-            <iframe
-              src={previewItem.url}
-              className="w-full h-full border-0"
-              title="PDF Preview"
-              loading="lazy"
-            />
+            <div className="relative w-full h-full flex flex-col">
+              {/* Mobile-friendly overlay for direct opening */}
+              <div className="lg:hidden absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900/10 backdrop-blur-[2px] p-6 text-center">
+                <div className="w-20 h-20 bg-white/90 dark:bg-gray-800/90 rounded-3xl shadow-2xl flex items-center justify-center mb-6 border border-gray-200 dark:border-gray-700">
+                  <FileText size={40} className="text-primary-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 uppercase tracking-tight">PDF Preview Interface</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-8 max-w-[240px]">Mobile browsers may restrict in-page PDF rendering for security. Use the button below for full-screen reading.</p>
+                <a
+                  href={previewItem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full max-w-[240px] px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-[1.5rem] font-bold flex items-center justify-center gap-3 transition-all shadow-xl shadow-primary-500/30 active:scale-95"
+                >
+                  <ExternalLink size={20} />
+                  OPEN PDF FULLSCREEN
+                </a>
+              </div>
+              <iframe
+                src={previewItem.url}
+                className="w-full h-full border-0 flex-1"
+                title="PDF Preview"
+                loading="lazy"
+              />
+            </div>
           </SimplePreviewWrapper>
         );
 

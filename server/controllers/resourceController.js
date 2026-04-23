@@ -24,6 +24,7 @@ export const uploadResource = async (req, res) => {
       extraCourseId,
       uploadedBy,
       points: Number(points) || 10,
+      coinsReward: Number(req.body.coinsReward) || 0,
     };
 
     if (req.file) {
@@ -52,6 +53,10 @@ export const getFileFromDB = async (req, res) => {
       return res.status(404).json({ message: 'File not found in database' });
     }
 
+    const extension = resource.fileType || resource.fileData.contentType.split('/')[1] || 'pdf';
+    const filename = `${resource.title.replace(/[^a-z0-9]/gi, '_')}.${extension}`;
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.contentType(resource.fileData.contentType);
     res.send(resource.fileData.data);
   } catch (error) {
@@ -75,8 +80,8 @@ export const deleteResource = async (req, res) => {
 // Update Resource Metadata
 export const updateResource = async (req, res) => {
   try {
-    const { title, type } = req.body;
-    const resource = await Resource.findByIdAndUpdate(req.params.id, { title, type }, { new: true });
+    const { title, type, points, coinsReward } = req.body;
+    const resource = await Resource.findByIdAndUpdate(req.params.id, { title, type, points, coinsReward }, { new: true });
     if (!resource) return res.status(404).json({ message: 'Resource not found' });
     res.json(resource);
   } catch (error) {

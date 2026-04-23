@@ -24,7 +24,7 @@ const FaceAttendanceSession = ({ user, course, semester, onApply, onClose }) => 
 
                 // 2. Fetch Student Face Descriptors
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/course/${course._id}/face-data?semester=${semester}`, config);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/course/${course._id}/face-data?semester=${semester}`, config);
                 
                 // Convert arrays back to Float32Array
                 const processedData = res.data.map(item => ({

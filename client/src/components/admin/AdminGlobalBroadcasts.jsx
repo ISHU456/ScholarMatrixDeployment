@@ -20,7 +20,7 @@ const AdminGlobalBroadcasts = ({ user }) => {
 
     const fetchBroadcasts = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/broadcasts`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/broadcasts`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             setBroadcasts(res.data);
@@ -35,7 +35,7 @@ const AdminGlobalBroadcasts = ({ user }) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/broadcasts`, formData, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/broadcasts`, formData, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             setFormData({ title: '', content: '', priority: 'normal', category: 'General' });

@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema(
     address: { type: String },
     contact: { type: String },
     profilePic: { type: String, default: '' },
+    profileImage: {
+      url: { type: String, default: '' },
+      publicId: { type: String, default: '' },
+    },
     emergencyContact: {
       name: { type: String },
       relation: { type: String },

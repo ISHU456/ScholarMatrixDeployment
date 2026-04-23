@@ -35,7 +35,7 @@ const RoleLogin = () => {
     const fetchRoll = async () => {
         if (formData.role === 'student' && formData.department && view === 'register') {
             try {
-                const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/next-roll-number?dept=${formData.department}`);
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/next-roll-number?dept=${formData.department}`);
                 setFormData(prev => ({ ...prev, rollNumber: data.rollNumber }));
             } catch (err) {
                 console.error("Roll number generation failure");
@@ -53,7 +53,7 @@ const RoleLogin = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/public/settings`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/public/settings`);
         setSettings(data);
       } catch (err) {
         console.error("Failed to load global settings.");

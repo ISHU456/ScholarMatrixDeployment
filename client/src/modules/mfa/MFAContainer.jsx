@@ -27,7 +27,7 @@ const MFAContainer = () => {
         setVerifying(true);
         setError(null);
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/mfa/verify`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/mfa/verify`, {
                 tempToken: mfaState.tempToken,
                 descriptor: mfaState.faceDescriptor,
                 location: mfaState.location
@@ -114,7 +114,14 @@ const MFAContainer = () => {
             <div className="mt-auto mb-10 w-full px-12">
                 <div className="flex justify-between items-center relative">
                     <div className="absolute top-1/2 left-0 w-full h-[2px] bg-gray-100 dark:bg-gray-800 -z-10 -translate-y-1/2"></div>
-                    <div className="absolute top-1/2 left-0 h-[2px] bg-primary-500 -z-10 -translate-y-1/2 transition-all duration-700" style={{ width: mfaState.verificationStep === 'liveness' ? '0%' : mfaState.verificationStep === 'face' ? '50%' : '100%' }}></div>
+                    <div 
+                        className="absolute top-1/2 left-0 h-[2px] bg-primary-500 -z-10 -translate-y-1/2 transition-all duration-700" 
+                        style={{ 
+                            width: mfaState.skipLocation 
+                                ? (mfaState.verificationStep === 'liveness' ? '0%' : '100%')
+                                : (mfaState.verificationStep === 'liveness' ? '0%' : mfaState.verificationStep === 'face' ? '50%' : '100%') 
+                        }}
+                    ></div>
                     
                     <div className="flex flex-col items-center gap-2">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-semibold text-xs transition-all shadow-lg ${mfaState.verificationStep === 'liveness' || mfaState.verificationStep === 'face' || mfaState.verificationStep === 'location' || mfaState.verificationStep === 'verifying' ? 'bg-primary-500 text-white border-2 border-white dark:border-dark-bg' : 'bg-white dark:bg-dark-card border-2 border-gray-200 dark:border-gray-700 text-gray-400'}`}>1</div>
@@ -124,10 +131,12 @@ const MFAContainer = () => {
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-semibold text-xs transition-all shadow-lg ${mfaState.verificationStep === 'face' || mfaState.verificationStep === 'location' || mfaState.verificationStep === 'verifying' ? 'bg-primary-500 text-white border-2 border-white dark:border-dark-bg' : 'bg-white dark:bg-dark-card border-2 border-gray-200 dark:border-gray-700 text-gray-400'}`}>2</div>
                         <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Facial</span>
                     </div>
-                    <div className="flex flex-col items-center gap-2">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-semibold text-xs transition-all shadow-lg ${mfaState.verificationStep === 'location' || mfaState.verificationStep === 'verifying' ? 'bg-primary-500 text-white border-2 border-white dark:border-dark-bg' : 'bg-white dark:bg-dark-card border-2 border-gray-200 dark:border-gray-700 text-gray-400'}`}>3</div>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Location</span>
-                    </div>
+                    {!mfaState.skipLocation && (
+                        <div className="flex flex-col items-center gap-2">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-semibold text-xs transition-all shadow-lg ${mfaState.verificationStep === 'location' || mfaState.verificationStep === 'verifying' ? 'bg-primary-500 text-white border-2 border-white dark:border-dark-bg' : 'bg-white dark:bg-dark-card border-2 border-gray-200 dark:border-gray-700 text-gray-400'}`}>3</div>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Location</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

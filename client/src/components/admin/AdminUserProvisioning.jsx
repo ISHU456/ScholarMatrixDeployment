@@ -32,7 +32,7 @@ const AdminUserManagement = ({ user }) => {
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/users?role=${role}&dept=${selectedDept}&semester=${selectedSem}&section=${selectedSec}&isActive=${activeStatus}`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/users?role=${role}&dept=${selectedDept}&semester=${selectedSem}&section=${selectedSec}&isActive=${activeStatus}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             setUsers(res.data);
@@ -53,7 +53,7 @@ const AdminUserManagement = ({ user }) => {
         
         try {
             console.log(`Initiating deletion for user: ${userId}`);
-            const response = await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/users/${userId}`, {
+            const response = await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/users/${userId}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             
@@ -71,7 +71,7 @@ const AdminUserManagement = ({ user }) => {
 
     const handleAuthorize = async (userId) => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/teachers/pending/${userId}/authorize`, {}, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/teachers/pending/${userId}/authorize`, {}, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             fetchUsers();
@@ -82,7 +82,7 @@ const AdminUserManagement = ({ user }) => {
 
     const handleRoleUpdate = async (userId, newRole) => {
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/users/${userId}/role`, { role: newRole }, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/users/${userId}/role`, { role: newRole }, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             fetchUsers();

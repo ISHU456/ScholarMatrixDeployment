@@ -8,6 +8,10 @@ const gpsConfigSchema = new mongoose.Schema({
   radius: { type: Number, required: true, default: 100 }, // meters
   label: { type: String, default: 'Main Campus' },
   isActive: { type: Boolean, default: true },
+  entryStartTime: { type: String, default: '09:00' },
+  entryEndTime: { type: String, default: '11:00' },
+  exitStartTime: { type: String, default: '16:00' },
+  exitEndTime: { type: String, default: '18:00' },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, {
   timestamps: true

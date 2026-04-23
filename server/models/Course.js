@@ -30,7 +30,9 @@ const courseSchema = new mongoose.Schema({
   excludedStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   autoRestrictEnabled: { type: Boolean, default: true },
   marksDeadline: { type: Date },
-  views: { type: Number, default: 0 }
+  views: { type: Number, default: 0 },
+  coinsReward: { type: Number, default: 0 },
+  xpReward: { type: Number, default: 0 }
 }, {
   timestamps: true
 });

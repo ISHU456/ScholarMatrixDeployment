@@ -11,12 +11,16 @@ const ContentUploader = ({
   setNewType,
   newUrl,
   setNewUrl,
+  newPoints,
+  setNewPoints,
   fileInputRef,
   selectedFile,
   setSelectedFile,
   handleUploadCombined,
   isUploading,
   uploadProgress,
+  newCoinsReward,
+  setNewCoinsReward,
   asgnTitle,
   setAsgnTitle,
   asgnDue,
@@ -42,7 +46,7 @@ const ContentUploader = ({
       <div className="p-8 space-y-6">
         <div className="flex justify-between items-center mb-2">
           <div className="flex flex-col">
-            <h2 className="text-xl font-semibold dark:text-white uppercase tracking-tighter">Content Uploader</h2>
+            <h2 className="text-xl font-semibold dark:text-white uppercase tracking-tighter">Upload Section</h2>
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-wide">Authorized Faculty Override Only</p>
           </div>
           <button onClick={() => setShowUploadForm(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
@@ -69,6 +73,23 @@ const ContentUploader = ({
                <option value="youtube">EXTERNAL VIDEO (LINK)</option>
                <option value="notes">LECTURE NOTES</option>
              </select>
+             
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                   <label className="text-[8px] font-bold text-gray-400 uppercase tracking-widest ml-1">XP Points</label>
+                   <input 
+                     type="number" placeholder="XP" value={newPoints} onChange={(e)=>setNewPoints(e.target.value)}
+                     className="w-full bg-white dark:bg-gray-800 border-0 rounded-xl px-4 py-3 text-xs font-bold ring-indigo-500/10 ring-1"
+                   />
+                </div>
+                <div className="space-y-1">
+                   <label className="text-[8px] font-bold text-gray-400 uppercase tracking-widest ml-1">Coins Reward</label>
+                   <input 
+                     type="number" placeholder="Coins" value={newCoinsReward || 0} onChange={(e)=>setNewCoinsReward(e.target.value)}
+                     className="w-full bg-white dark:bg-gray-800 border-0 rounded-xl px-4 py-3 text-xs font-bold ring-amber-500/10 ring-1"
+                   />
+                </div>
+             </div>
              {newType === 'youtube' ? (
                <input 
                  type="text" placeholder="URL Endpoint" value={newUrl} onChange={(e)=>setNewUrl(e.target.value)}

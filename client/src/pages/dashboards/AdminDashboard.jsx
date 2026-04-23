@@ -75,7 +75,7 @@ const AdminDashboard = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/admin/stats`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setStats(res.data);
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
   const fetchQuizzes = useCallback(async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, config);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes`, config);
       setQuizzes(res.data);
     } catch (err) {
       console.error("Failed to fetch quizzes");
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
     if (!window.confirm("Are you sure you want to delete this quiz?")) return;
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${id}`, config);
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${id}`, config);
       setQuizzes(quizzes.filter(q => q._id !== id));
     } catch (err) {
       alert("Delete failed: " + err.message);

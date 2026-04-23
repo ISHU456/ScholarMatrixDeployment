@@ -170,7 +170,7 @@ const AppContent = () => {
     const fetchAndSyncProfile = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/profile`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/profile`, config);
         
         if (res.data) {
           dispatch(updateProfile(res.data));
@@ -178,7 +178,7 @@ const AppContent = () => {
           // Sync department if missing in localStorage
           const storedDept = localStorage.getItem('selectedDepartment');
           if (!storedDept && res.data.department) {
-            const dRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/departments`);
+            const dRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/departments`);
             const dept = dRes.data.find(d => d.code === res.data.department);
             if (dept) {
               localStorage.setItem('selectedDepartment', JSON.stringify(dept));
@@ -203,7 +203,7 @@ const AppContent = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/public/settings`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/public/settings`);
         setSettings(data);
       } catch (err) {
         console.error("Failed to load global settings.");

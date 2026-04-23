@@ -8,7 +8,8 @@ import {
     deleteSubmission,
     deleteAssignment,
     getUserSubmissions,
-    getAllAssignments
+    getAllAssignments,
+    updateAssignment
 } from '../controllers/assignmentController.js';
 import { protect, admin } from '../middlewares/authMiddleware.js';
 import multer from 'multer';
@@ -25,6 +26,7 @@ router.put('/grade/:submissionId', protect, gradeSubmission);
 router.delete('/submissions/:submissionId', protect, deleteSubmission);
 router.get('/', protect, getAllAssignments);
 router.delete('/:assignmentId', protect, deleteAssignment);
+router.put('/:assignmentId', protect, upload.single('file'), updateAssignment);
 
 // STUDENT ROUTES
 router.post('/submit', protect, upload.array('files', 5), submitAssignment);

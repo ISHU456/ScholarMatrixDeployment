@@ -8,7 +8,7 @@ const NotificationListener = () => {
   useEffect(() => {
     if (!user) return;
 
-    const socket = io('' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com') + '');
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001');
     
     // Join a private room for the user
     socket.emit('join-room', `user_${user._id}`, user._id);

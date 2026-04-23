@@ -169,3 +169,17 @@ export const incrementCourseViews = async (req, res) => {
     res.json({ views: course.views });
   } catch (error) { res.status(500).json({ message: 'Error incrementing views', error: error.message }); }
 };
+
+export const updateCourseGamification = async (req, res) => {
+  try {
+    const { code } = req.params;
+    const { coinsReward, xpReward } = req.body;
+    const course = await Course.findOneAndUpdate(
+      { code: code.toUpperCase() }, 
+      { coinsReward: Number(coinsReward), xpReward: Number(xpReward) }, 
+      { new: true }
+    );
+    if (!course) return res.status(404).json({ message: 'Course node not identified.' });
+    res.json({ message: 'Neural rewards synchronized.', coinsReward: course.coinsReward, xpReward: course.xpReward });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+};

@@ -11,7 +11,8 @@ import {
   removeStudentFromCourse, 
   toggleAutoRestrict, 
   updateCourseDeadline,
-  incrementCourseViews
+  incrementCourseViews,
+  updateCourseGamification
 } from '../controllers/courseController.js';
 import { protect, admin } from '../middlewares/authMiddleware.js';
 import { isCourseTeacher } from '../middlewares/courseAuth.js';
@@ -28,6 +29,7 @@ router.put('/:code/schedule', protect, isCourseTeacher, updateCourseSchedule);
 router.put('/:code/auto-restrict', protect, isCourseTeacher, toggleAutoRestrict);
 router.put('/:code/deadline', protect, isCourseTeacher, updateCourseDeadline);
 router.patch('/:code/view', protect, incrementCourseViews);
+router.put('/:code/gamification', protect, isCourseTeacher, updateCourseGamification);
 router.post('/:code/schedule/image', protect, isCourseTeacher, upload.single('file'), uploadTimetableImage);
 
 export default router;

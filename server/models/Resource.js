@@ -4,6 +4,7 @@ const resourceSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
   points: { type: Number, default: 10 },
+  coinsReward: { type: Number, default: 0 },
   type: { type: String, enum: ['material', 'ebook', 'pyq', 'yt', 'mindmap', 'resource', 'youtube', 'pdf', 'ppt', 'assignment'], required: true },
   fileUrl: { type: String }, // Cloudinary / S3 / Local Server URL
   fileData: { data: Buffer, contentType: String }, // Optional direct DB storage for small files

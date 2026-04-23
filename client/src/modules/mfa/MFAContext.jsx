@@ -20,6 +20,7 @@ export const MFAProvider = ({ children }) => {
       requires2FA: true,
       tempToken: tempData.tempToken,
       userId: tempData.userId,
+      skipLocation: tempData.skipLocation || false,
       verificationStep: 'liveness',
       error: null
     }));
@@ -31,7 +32,11 @@ export const MFAProvider = ({ children }) => {
       if (step === 'liveness') newState.verificationStep = 'face';
       if (step === 'face') {
         newState.faceDescriptor = data;
-        newState.verificationStep = 'location';
+        if (prev.skipLocation) {
+          newState.verificationStep = 'verifying';
+        } else {
+          newState.verificationStep = 'location';
+        }
       }
       if (step === 'location') {
         newState.location = data;

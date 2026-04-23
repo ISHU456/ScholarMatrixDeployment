@@ -36,7 +36,7 @@ const QuizGenerator = ({ onClose, onSave, quizId }) => {
         setIsLoading(true);
         try {
           const config = { headers: { Authorization: `Bearer ${user.token}` } };
-          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}`, config);
+          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quizId}`, config);
           
           // Enforce 'question' as the definitive field for the inquiry text
           if (res.data && res.data.questions && Array.isArray(res.data.questions)) {
@@ -98,10 +98,10 @@ const QuizGenerator = ({ onClose, onSave, quizId }) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       if (quizId) {
-        await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}`, quizForm, config);
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quizId}`, quizForm, config);
         alert("Neural Quiz Node Recalibrated!");
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes`, quizForm, config);
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes`, quizForm, config);
         alert("Neural Quiz Node Deployed!");
       }
       if (onSave) onSave();
@@ -118,7 +118,7 @@ const QuizGenerator = ({ onClose, onSave, quizId }) => {
     setIsGenerating(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/generate-quiz`, { 
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/generate-quiz`, { 
         topic: aiPrompt,
         count: 5 
       }, config);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMFA } from '../../modules/mfa/MFAContext';
+import { markAttendanceForStudent } from '../../utils/gamificationStore';
 import FaceCamera from '../../modules/mfa/components/FaceCamera';
 import LocationCheck from '../../modules/mfa/components/LocationCheck';
 import BlinkCheck from '../../modules/mfa/components/BlinkCheck';
@@ -35,7 +36,7 @@ const SelfAttendance = () => {
             const userStr = localStorage.getItem('user');
             const token = userStr ? JSON.parse(userStr).token : null;
 
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/mfa/mark-attendance`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/mfa/mark-attendance`, {
                 courseId,
                 descriptor: mfaState.faceDescriptor,
                 location: mfaState.location
@@ -44,6 +45,8 @@ const SelfAttendance = () => {
             });
 
             if (response.status === 201) {
+                const userId = JSON.parse(userStr)._id;
+                markAttendanceForStudent({ studentId: userId });
                 setSuccess(true);
                 setTimeout(() => navigate('/dashboard'), 2000);
             }

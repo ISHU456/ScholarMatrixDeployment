@@ -32,7 +32,7 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
     const fetchCourses = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses`, config);
         setCourses(res.data);
         if (res.data.length > 0 && !initialCourse && !initialSemester) {
             const defaultSem = (user.role === 'admin' ? 1 : (user.assignedSemesters?.[0] || 1));
@@ -70,13 +70,13 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const year = selectedDate.getFullYear();
         const month = selectedDate.getMonth();
-        const startDate = new Date(year, month, 1).toISOString();
-        const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+        const startDate = new Date(Date.UTC(year, month, 1)).toISOString();
+        const endDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999)).toISOString();
 
         // Fetch everything in parallel
         const [studentsRes, attendanceRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${selectedCourse.code}/students?semester=${semester}&section=${section}`, config),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/course/${selectedCourse._id}?startDate=${startDate}&endDate=${endDate}&semester=${semester}&section=${section}`, config)
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${selectedCourse.code}/students?semester=${semester}&section=${section}`, config),
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/course/${selectedCourse._id}?startDate=${startDate}&endDate=${endDate}&semester=${semester}&section=${section}`, config)
         ]);
 
         setStudents(studentsRes.data);
@@ -85,7 +85,7 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
         // Fetch daily bulk attendance only if students exist
         if (studentsRes.data.length > 0) {
             const studentIds = studentsRes.data.map(s => s._id).join(',');
-            const dailyRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/attendance/daily/monthly-bulk?studentIds=${studentIds}&month=${month + 1}&year=${year}`, config);
+            const dailyRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/attendance/daily/monthly-bulk?studentIds=${studentIds}&month=${month + 1}&year=${year}`, config);
             setDailyAttendanceRecords(dailyRes.data);
         }
       } catch (error) { 
@@ -120,7 +120,8 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
     const grid = {};
     if (!attendanceRecords || !Array.isArray(attendanceRecords)) return grid;
     attendanceRecords.forEach(record => {
-      const day = new Date(record.date).getUTCDate();
+      const dateObj = new Date(record.date);
+      const day = new Date(dateObj.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).getDate();
       const studentId = record.student?._id || record.student;
       if (!grid[studentId]) grid[studentId] = {};
       if (record.status === 'present') grid[studentId][day] = 'P';
@@ -128,7 +129,8 @@ const MonthlyRegister = ({ user, initialSemester, initialCourse, onPersistChange
     });
     if (Array.isArray(dailyAttendanceRecords)) {
       dailyAttendanceRecords.forEach(record => {
-        const day = new Date(record.date).getUTCDate();
+        const dateObj = new Date(record.date);
+        const day = new Date(dateObj.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).getDate();
         const studentId = record.student?._id || record.student;
         if (!grid[studentId]) grid[studentId] = {};
         const existing = grid[studentId][day] || '';

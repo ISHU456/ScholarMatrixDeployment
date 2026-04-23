@@ -19,7 +19,7 @@ const AdminRewardFulfillment = ({ user }) => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/orders`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/orders`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setOrders(res.data);
@@ -32,7 +32,7 @@ const AdminRewardFulfillment = ({ user }) => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axios.patch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/orders/${orderId}`, { status: newStatus }, {
+      await axios.patch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/orders/${orderId}`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));

@@ -17,6 +17,7 @@ import AttendanceManager from '../../components/teacher/AttendanceManager';
 import CourseAccessManager from '../../components/teacher/CourseAccessManager';
 import MonthlyRegister from '../../components/teacher/MonthlyRegister';
 import QuizGenerator from '../../components/teacher/QuizGenerator';
+import AdminQuizAttendees from '../../components/admin/AdminQuizAttendees';
 import QuizArena from '../../components/student/QuizArena';
 import { useLocation } from 'react-router-dom';
 
@@ -181,6 +182,10 @@ const FacultyDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeQuizId, setActiveQuizId] = useState(null);
+  const [quizzes, setQuizzes] = useState([]);
+  const [viewingAttendeesId, setViewingAttendeesId] = useState(null);
+  const [quizGenOpen, setQuizGenOpen] = useState(false);
+  const [editingQuizId, setEditingQuizId] = useState(null);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -190,9 +195,9 @@ const FacultyDashboard = () => {
   useEffect(() => {
     if (!user?.token) return;
     const config = { headers: { Authorization: `Bearer ${user.token}` } };
-    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments`, config).then(r => setAssignments(r.data)).catch(() => {});
-    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/announcements`, config).then(r => setAnnouncements(r.data.announcements || r.data)).catch(() => {});
-    axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses`, config).then(r => {
+    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments`, config).then(r => setAssignments(r.data)).catch(() => {});
+    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/announcements`, config).then(r => setAnnouncements(r.data.announcements || r.data)).catch(() => {});
+    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses`, config).then(r => {
       setMyCourses(r.data);
       if (lastCourseId) {
         const last = r.data.find(c => c._id === lastCourseId);
@@ -209,6 +214,33 @@ const FacultyDashboard = () => {
     }).catch(() => {});
   }, [user]);
 
+  const fetchQuizzes = useCallback(async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes`, config);
+      setQuizzes(res.data);
+    } catch (err) {
+      console.error("Failed to fetch quizzes");
+    }
+  }, [user.token]);
+
+  useEffect(() => {
+    if (activeTab === 'quizzes') {
+      fetchQuizzes();
+    }
+  }, [activeTab, fetchQuizzes]);
+
+  const handleDeleteQuiz = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this quiz?")) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${id}`, config);
+      setQuizzes(quizzes.filter(q => q._id !== id));
+    } catch (err) {
+      alert("Delete failed: " + err.message);
+    }
+  };
+
   const openAdd = () => { setModalForm({...EMPTY_FORM}); setIsEdit(false); setModalOpen(true); };
   const openEdit = (s) => { setModalForm({...s}); setIsEdit(true); setModalOpen(true); };
   const handleSave = async () => { setModalOpen(false); };
@@ -219,7 +251,7 @@ const FacultyDashboard = () => {
       // Find course object for ID
       const targetCourse = myCourses.find(c => c.code === courseCode);
       if (targetCourse) {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/notifications/broadcast-live`, { courseId: targetCourse._id }, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/notifications/broadcast-live`, { courseId: targetCourse._id }, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
       }
@@ -240,6 +272,7 @@ const FacultyDashboard = () => {
     { id:'access', label:'Access Control', icon: ShieldCheck },
     { id:'schedule', label:'Schedule', icon: CalendarDays },
     { id:'courses', label:'My Course Hub', icon: BookOpen },
+    { id:'quizzes', label:'Quiz Arena', icon: Brain },
     { id:'results', label:'Exam Grades', icon: BarChart2 },
     { id:'announcements', label:'Notices', icon: Megaphone },
   ];
@@ -299,11 +332,11 @@ const FacultyDashboard = () => {
           <motion.div 
             initial={{ opacity:0, y:-20 }} 
             animate={{ opacity:1, y:0 }} 
-            className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[3rem] p-6 lg:p-12 mb-8 lg:mb-12 shadow-2xl group cursor-default min-h-[280px] lg:min-h-[340px] flex flex-col justify-end border border-white/10 dark:border-white/5"
+            className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[3rem] p-6 lg:p-12 mb-8 lg:mb-12 shadow-2xl group cursor-default min-h-[280px] lg:min-h-[340px] flex flex-col justify-end border border-gray-100 dark:border-white/5 bg-white dark:bg-gray-900"
           >
-            {/* Background Image Layer with Darkening Filter */}
+            {/* Background Image Layer with Adaptive Brightness */}
             <div 
-              className="absolute inset-0 z-0 scale-105 group-hover:scale-100 transition-transform duration-[2s] ease-out brightness-[0.45] dark:brightness-[0.35]"
+              className="absolute inset-0 z-0 scale-105 group-hover:scale-100 transition-transform duration-[2s] ease-out brightness-[0.9] dark:brightness-[0.35]"
               style={{ 
                 backgroundImage: `url('/images/dashboard/teacher_banner.png')`,
                 backgroundSize: 'cover',
@@ -312,37 +345,37 @@ const FacultyDashboard = () => {
             />
             
             {/* Multi-layered High-Contrast Gradient Overlay */}
-            <div className="absolute inset-0 z-[1] bg-gradient-to-t from-gray-900/95 via-gray-900/60 to-transparent dark:from-[#0b0f1a]/95 dark:via-[#0b0f1a]/70 dark:to-transparent" />
-            <div className="absolute inset-0 z-[2] bg-gradient-to-r from-indigo-600/30 to-transparent opacity-50 mix-blend-multiply" />
+            <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white/95 via-white/60 to-transparent dark:from-gray-950/95 dark:via-gray-950/70 dark:to-transparent" />
+            <div className="absolute inset-0 z-[2] bg-gradient-to-r from-indigo-600/10 to-transparent opacity-50 mix-blend-multiply dark:mix-blend-overlay" />
             
             {/* Content Axis with Drop Shadows for Depth */}
             <div className="relative z-10 drop-shadow-2xl">
               <div className="flex items-center gap-4 mb-5">
                  <div className="w-16 h-[2px] bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
-                 <span className="text-xs font-semibold text-indigo-400 uppercase tracking-[0.6em] drop-shadow-md">Faculty Dashboard</span>
+                 <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.6em] drop-shadow-sm">Faculty Dashboard</span>
               </div>
-              <h1 className="text-4xl lg:text-7xl font-semibold text-white uppercase tracking-tighter leading-none mb-4 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
-                Welcome, <span className="text-indigo-400">Professor</span>
+              <h1 className="text-4xl lg:text-7xl font-semibold text-gray-900 dark:text-white uppercase tracking-tighter leading-none mb-4 drop-shadow-sm dark:drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+                Welcome, <span className="text-indigo-600 dark:text-indigo-400">Professor</span>
               </h1>
-              <p className="text-gray-300/80 text-xs lg:text-xs font-semibold uppercase tracking-[0.3em] mb-6 max-w-xl leading-relaxed italic border-l-2 border-indigo-500/30 pl-4">
+              <p className="text-gray-600 dark:text-gray-300/80 text-xs lg:text-xs font-semibold uppercase tracking-[0.3em] mb-6 max-w-xl leading-relaxed italic border-l-2 border-indigo-500/30 pl-4">
                 Manage your courses, attendance, and students efficiently from one central place.
               </p>
               
               <div className="flex items-center gap-5">
-                <div className="flex items-center gap-3 px-5 py-2.5 bg-black/40 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-xl">
-                  <CalendarDays size={16} className="text-indigo-400" />
-                  <p className="text-white text-xs font-semibold uppercase tracking-wide">{time.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-gray-100/80 dark:bg-black/40 backdrop-blur-2xl rounded-2xl border border-gray-200 dark:border-white/10 shadow-xl">
+                  <CalendarDays size={16} className="text-indigo-600 dark:text-indigo-400" />
+                  <p className="text-gray-900 dark:text-white text-xs font-semibold uppercase tracking-wide">{time.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                 </div>
-                <div className="flex items-center gap-3 px-5 py-2.5 bg-black/40 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-xl">
-                  <Clock size={16} className="text-indigo-400" />
-                  <p className="text-white text-xs font-semibold uppercase tracking-wide">{time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-gray-100/80 dark:bg-black/40 backdrop-blur-2xl rounded-2xl border border-gray-200 dark:border-white/10 shadow-xl">
+                  <Clock size={16} className="text-indigo-600 dark:text-indigo-400" />
+                  <p className="text-gray-900 dark:text-white text-xs font-semibold uppercase tracking-wide">{time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
                 </div>
               </div>
             </div>
             
             {/* Procedural Visual Element */}
-            <div className="absolute top-6 lg:top-12 right-6 lg:right-12 z-20 p-4 lg:p-8 bg-black/40 backdrop-blur-3xl rounded-3xl lg:rounded-[3rem] border border-white/10 shadow-2xl group-hover:bg-indigo-600/20 transition-all duration-500">
-               <Layers size={32} className="lg:w-[54px] lg:h-[54px] text-indigo-400 animate-pulse drop-shadow-[0_0_10px_rgba(129,140,248,0.5)]" />
+            <div className="absolute top-6 lg:top-12 right-6 lg:right-12 z-20 p-4 lg:p-8 bg-white/40 dark:bg-black/40 backdrop-blur-3xl rounded-3xl lg:rounded-[3rem] border border-gray-200 dark:border-white/10 shadow-2xl group-hover:bg-indigo-600/20 transition-all duration-500">
+               <Layers size={32} className="lg:w-[54px] lg:h-[54px] text-indigo-600 dark:text-indigo-400 animate-pulse drop-shadow-[0_0_10px_rgba(129,140,248,0.5)]" />
             </div>
           </motion.div>
 
@@ -373,11 +406,81 @@ const FacultyDashboard = () => {
                   </div>
                 </motion.div>
               )}
+             {activeTab === 'quizzes' && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white uppercase italic tracking-tighter">Neural Quiz Governance</h2>
+                      <p className="text-xs text-indigo-500 font-bold uppercase tracking-wide mt-1">Cross-Sector Achievement Nodes</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="hidden sm:block px-6 py-2.5 bg-indigo-600/10 text-indigo-600 rounded-xl text-xs font-bold uppercase tracking-wide border border-indigo-500/20">
+                         {quizzes.length} Arenas Active
+                      </div>
+                      <button 
+                        onClick={() => setQuizGenOpen(true)}
+                        className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wide shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2 active:scale-95"
+                      >
+                        <Plus size={16} /> Deploy New Quiz
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {quizzes.map(q => (
+                      <div key={q._id} className="bg-white dark:bg-[#111827] p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl transition-all">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center"><Brain size={24}/></div>
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight truncate">{q.title}</h3>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-1">{q.category}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6 mb-8">
+                          <div className="flex items-center gap-2"><Target size={14} className="text-gray-400"/><span className="text-xs font-bold text-gray-500">{q.totalPoints} PTS</span></div>
+                          <div className="flex items-center gap-2"><Clock size={14} className="text-gray-400"/><span className="text-xs font-bold text-gray-500">{q.timeLimit} MIN</span></div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-6 flex-wrap">
+                           <button 
+                             onClick={() => setViewingAttendeesId(q._id)}
+                             className="flex-1 py-3 rounded-2xl bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+                           >
+                             Attendees
+                           </button>
+                           <button 
+                             onClick={() => setEditingQuizId(q._id)}
+                             className="p-3 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-indigo-600 hover:text-white transition-all"
+                           >
+                             <Edit2 size={16}/>
+                           </button>
+                           <button 
+                             onClick={() => handleDeleteQuiz(q._id)}
+                             className="p-3 rounded-2xl bg-gray-50 dark:bg-gray-800 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all"
+                           >
+                             <Trash2 size={16}/>
+                           </button>
+                        </div>
+                      </div>
+                    ))}
+                    {quizzes.length === 0 && (
+                      <div className="col-span-full py-40 text-center bg-white dark:bg-gray-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-gray-800">
+                        <Brain size={48} className="mx-auto text-indigo-500 mb-6 animate-pulse" />
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Global Quiz Registry</h3>
+                        <p className="text-xs font-semibold text-gray-400 mt-4 max-w-md mx-auto leading-relaxed">As a professor, you can deploy and monitor neural quiz nodes. Currently no quizzes are available.</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
           </AnimatePresence>
         </main>
       </div>
       <AnimatePresence>
         {modalOpen && <ScheduleModal form={modalForm} setForm={setModalForm} onSave={handleSave} onClose={() => setModalOpen(false)} isEdit={isEdit} courses={myCourses} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {quizGenOpen && <QuizGenerator onClose={() => setQuizGenOpen(false)} onSave={fetchQuizzes} />}
+        {editingQuizId && <QuizGenerator quizId={editingQuizId} onClose={() => setEditingQuizId(null)} onSave={fetchQuizzes} />}
+        {viewingAttendeesId && <AdminQuizAttendees quizId={viewingAttendeesId} onClose={() => setViewingAttendeesId(null)} user={user} />}
       </AnimatePresence>
     </div>
   );

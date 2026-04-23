@@ -5,6 +5,7 @@ import {
     X, Check, Save, Zap, Brain, Trophy, Trash2, Plus
 } from 'lucide-react';
 import axios from 'axios';
+import { forceDownload } from '../../../utils/downloadHelper';
 
 const AssignmentInterface = ({ assignment, user, isTeacher, onBack, fetchAssignments }) => {
     const [submissions, setSubmissions] = useState([]);
@@ -23,7 +24,7 @@ const AssignmentInterface = ({ assignment, user, isTeacher, onBack, fetchAssignm
 
     const fetchSubmissions = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/submissions/${assignment._id}`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/submissions/${assignment._id}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             setSubmissions(res.data);
@@ -116,7 +117,7 @@ const AssignmentInterface = ({ assignment, user, isTeacher, onBack, fetchAssignm
         if (submissionFile) formData.append('files', submissionFile);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/submit`, formData, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/submit`, formData, {
                 headers: { 
                     Authorization: `Bearer ${user.token}`,
                     'Content-Type': 'multipart/form-data'
@@ -137,7 +138,7 @@ const AssignmentInterface = ({ assignment, user, isTeacher, onBack, fetchAssignm
         const feedback = gradingData[subId]?.feedback !== undefined ? gradingData[subId].feedback : (sub.facultyFeedback ?? "");
 
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/grade/${subId}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/grade/${subId}`, {
                 marks,
                 feedback,
                 teacherId: user._id
@@ -155,7 +156,7 @@ const AssignmentInterface = ({ assignment, user, isTeacher, onBack, fetchAssignm
     const handleDeleteSubmission = async (subId) => {
         if (!window.confirm("WARNING: Irreversible Action. Eradicate this neural submission?")) return;
         try {
-            await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/submissions/${subId}`, {
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/submissions/${subId}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             fetchSubmissions();
@@ -269,7 +270,7 @@ const AssignmentInterface = ({ assignment, user, isTeacher, onBack, fetchAssignm
 
                                           {sub.files?.length > 0 && (
                                              <button 
-                                               onClick={() => window.open(sub.files[0].fileUrl, '_blank')}
+                                               onClick={() => forceDownload(sub.files[0].fileUrl, `${sub.student.name.replace(/\s+/g, '_')}_Submission.pdf`)}
                                                className="p-3 sm:p-4 text-primary-500 bg-primary-50 dark:bg-primary-900/20 rounded-xl sm:rounded-2xl hover:bg-primary-500 hover:text-white transition-all shadow-sm cursor-pointer"
                                              >
                                                 <Eye size={16} className="sm:hidden"/><Eye size={18} className="hidden sm:block"/>

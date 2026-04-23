@@ -3,7 +3,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Newspaper, ExternalLink, GraduationCap, Briefcase, RefreshCw, AlertCircle } from 'lucide-react';
 
-const API_BASE = '' + (import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com') + '/api';
+const API_BASE = '' + (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '/api';
 
 const GlobalEducationNews = () => {
     const [news, setNews] = useState([]);

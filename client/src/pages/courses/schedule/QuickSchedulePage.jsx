@@ -41,7 +41,7 @@ const QuickSchedulePage = () => {
         try {
             setIsLoading(true);
             const code = courseId.toUpperCase();
-            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${code}`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${code}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             setTimetable(res.data.schedule || []);
@@ -56,7 +56,7 @@ const QuickSchedulePage = () => {
         try {
             setIsSaving(true);
             const code = courseId.toUpperCase();
-            const res = await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/courses/${code}/schedule`, 
+            const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/courses/${code}/schedule`, 
                 { schedule: newSchedule },
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );

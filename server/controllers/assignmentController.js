@@ -45,7 +45,7 @@ const parseQuizInput = (rawText) => {
 
 export const createAssignment = async (req, res) => {
   try {
-    const { title, description, type, courseId, facultyId, dueDate, totalMarks, quizQuestions: rawQuizQuestions } = req.body;
+    const { title, description, type, courseId, facultyId, dueDate, totalMarks, xpReward, coinsReward, quizQuestions: rawQuizQuestions } = req.body;
     
     let quizQuestions = [];
     if (type === 'quiz' && rawQuizQuestions) {
@@ -66,6 +66,8 @@ export const createAssignment = async (req, res) => {
        faculty: req.user?._id || facultyId,
        dueDate,
        totalMarks: totalMarks || 10,
+       xpReward: Number(xpReward) || 0,
+       coinsReward: Number(coinsReward) || 0,
        quizQuestions,
        pdfUrl: req.file ? req.file.path : undefined
     });
@@ -251,6 +253,25 @@ export const getAllAssignments = async (req, res) => {
     try {
         const assignments = await Assignment.find({ faculty: req.user._id }).sort({ createdAt: -1 });
         res.json(assignments);
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+};
+
+export const updateAssignment = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+        const updates = req.body;
+        
+        // Remove file related fields if not provided or handle file update
+        if (req.file) {
+            updates.pdfUrl = req.file.path;
+        }
+
+        const assignment = await Assignment.findByIdAndUpdate(assignmentId, updates, { new: true });
+        if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+        
+        res.json(assignment);
     } catch (e) {
         res.status(500).json({ message: e.message });
     }

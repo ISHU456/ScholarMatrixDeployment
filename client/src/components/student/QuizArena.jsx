@@ -33,7 +33,7 @@ const QuizArena = ({ quizId: propQuizId, onClose: propOnClose }) => {
     const fetchQuiz = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/${quizId}`, config);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/${quizId}`, config);
         setQuiz(res.data);
         setTimeLeft(res.data.timeLimit * 60);
         setIsLoading(false);
@@ -87,7 +87,7 @@ const QuizArena = ({ quizId: propQuizId, onClose: propOnClose }) => {
 
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/gamification/quizzes/submit`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/gamification/quizzes/submit`, {
         quizId,
         score: Math.round(score),
         timeTaken,

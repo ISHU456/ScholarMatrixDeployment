@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, User, Phone, MapPin, Building, HeartPulse, ShieldAlert, Lock, Mail, Calendar, AtSign, Briefcase, GraduationCap, Globe, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Camera, User, Phone, MapPin, Building, HeartPulse, ShieldAlert, Lock, Mail, Calendar, AtSign, Briefcase, GraduationCap, Globe, CheckCircle2, AlertCircle, Scissors, Check, X as CloseIcon } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateProfile } from '../../features/auth/authSlice';
+import axios from 'axios';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../../utils/cropImage';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -62,32 +65,60 @@ const Profile = () => {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
-        },
-        body: JSON.stringify(formData)
+      const dataToSend = new FormData();
+      // Append all fields from formData except profilePic (we'll append the file if exists)
+      Object.keys(formData).forEach(key => {
+        if (key === 'profilePic') return;
+        if (typeof formData[key] === 'object') {
+          dataToSend.append(key, JSON.stringify(formData[key]));
+        } else {
+          dataToSend.append(key, formData[key]);
+        }
       });
-      const data = await res.json();
-      if(res.ok) {
+
+      if (selectedFile) {
+        dataToSend.append('profilePic', selectedFile);
+      }
+
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${user.token}`
+        }
+      };
+
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/profile`, dataToSend, config);
+      
+      if(res.status === 200) {
         setSuccessMsg('Profile updated successfully!');
         setIsEditing(false);
-        dispatch(updateProfile(data));
-      } else {
-        setErrorMsg(data.message || 'Failed to update profile');
+        setSelectedFile(null); // Clear local file after success
+        
+        // Use the data returned directly from the PUT request to avoid database race conditions
+        const updatedUserData = res.data;
+        dispatch(updateProfile(updatedUserData));
+        
+        // Update local form state immediately to prevent "vanishing" effect
+        setFormData(prev => ({
+            ...prev,
+            profilePic: updatedUserData.profilePic
+        }));
       }
     } catch (err) {
-      console.error(err);
-      setErrorMsg('Network error occurred.');
+      console.error("PROFILE UPDATE ERROR:", err);
+      const errorMsg = err.response?.data?.message || 'Failed to update profile. Check console for details.';
+      setErrorMsg(errorMsg);
+      // Immediate alert for visibility as requested
+      if (errorMsg.toLowerCase().includes('cloudinary') || errorMsg.toLowerCase().includes('upload')) {
+        window.alert(`CLOUD UPLOAD DENIED: ${errorMsg}`);
+      }
     }
   };
 
   const RequestDeactivation = async () => {
     if(window.confirm("Are you sure you want to request account deactivation?")) {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/profile`, {
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/profile`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
           body: JSON.stringify({ deactivationRequested: true })
@@ -99,15 +130,51 @@ const Profile = () => {
     }
   };
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+
+  const onCropComplete = useCallback((_ , pixels) => {
+    setCroppedAreaPixels(pixels);
+  }, []);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (readerEvent) => {
-        setFormData({ ...formData, profilePic: readerEvent.target.result });
+        setImageToCrop(readerEvent.target.result);
+        setShowCropper(true);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropConfirm = async () => {
+    try {
+      const croppedBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      const croppedFile = new File([croppedBlob], 'profile.jpg', { type: 'image/jpeg' });
+      setSelectedFile(croppedFile);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData({ ...formData, profilePic: e.target.result });
+      };
+      reader.readAsDataURL(croppedBlob);
+      setShowCropper(false);
+      setImageToCrop(null);
+    } catch (e) {
+      console.error("Crop Error:", e);
+      setErrorMsg("Failed to process image. Please try again.");
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setImageToCrop(null);
   };
 
   if (!user) return (
@@ -139,14 +206,24 @@ const Profile = () => {
             {/* Avatar Section */}
             <div className="relative shrink-0 group">
                <div className="w-40 h-40 rounded-3xl border-4 border-white dark:border-gray-800 bg-white dark:bg-gray-800 shadow-xl overflow-hidden flex items-center justify-center relative ring-1 ring-black/5 dark:ring-white/5">
-                 {formData.profilePic ? (
-                   <img src={formData.profilePic} alt="Profile" className="w-full h-full object-cover transition-transform duration-700" />
-                 ) : (
-                   <div className="flex flex-col items-center text-gray-400">
-                     <User size={64} strokeWidth={1} className="opacity-20" />
-                     <span className="text-xs font-bold uppercase tracking-wide mt-1 opacity-40">No Image</span>
-                   </div>
-                 )}
+                 {(formData.profilePic || user.profileImage?.url) && formData.profilePic !== 'undefined' && formData.profilePic !== '' ? (
+                   <img 
+                    src={formData.profilePic.startsWith('http') 
+                      ? `${formData.profilePic}${formData.profilePic.includes('?') ? '&' : '?'}t=${new Date().getTime()}` 
+                      : (formData.profilePic || user.profileImage?.url)} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover transition-transform duration-700" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.display = 'none';
+                      if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                    }}
+                   />
+                 ) : null}
+                 <div className={`flex-col items-center text-gray-400 ${(formData.profilePic || user.profileImage?.url) && formData.profilePic !== 'undefined' && formData.profilePic !== '' ? 'hidden' : 'flex'}`}>
+                   <User size={64} strokeWidth={1} className="opacity-20" />
+                   <span className="text-xs font-bold uppercase tracking-wide mt-1 opacity-40">No Image Detected</span>
+                 </div>
                </div>
                
                {isEditing && (
@@ -391,6 +468,86 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* IMAGE CROPPER MODAL */}
+      <AnimatePresence>
+        {showCropper && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10"
+            >
+              <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary-600 text-white rounded-xl">
+                    <Scissors size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Perfect Your Profile</h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Adjust focus and composition</p>
+                  </div>
+                </div>
+                <button onClick={handleCropCancel} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                  <CloseIcon size={20} className="text-gray-400" />
+                </button>
+              </div>
+
+              <div className="relative h-[400px] bg-slate-950">
+                <Cropper
+                  image={imageToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              </div>
+
+              <div className="p-8 space-y-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
+                    <span>Precision Zoom</span>
+                    <span className="text-primary-500">{Math.round(zoom * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    value={zoom}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    aria-labelledby="Zoom"
+                    onChange={(e) => setZoom(e.target.value)}
+                    className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-primary-600"
+                  />
+                </div>
+
+                <div className="flex gap-4">
+                  <button 
+                    onClick={handleCropCancel} 
+                    className="flex-1 py-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-gray-500 font-bold text-xs uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                  >
+                    DISCARD
+                  </button>
+                  <button 
+                    onClick={handleCropConfirm} 
+                    className="flex-[2] py-4 rounded-2xl bg-primary-600 text-white font-bold text-xs uppercase tracking-widest shadow-xl shadow-primary-500/20 flex items-center justify-center gap-2 hover:bg-primary-700 transition-all"
+                  >
+                    <Check size={18} /> APPLY TRANSFORMATION
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         .glass {

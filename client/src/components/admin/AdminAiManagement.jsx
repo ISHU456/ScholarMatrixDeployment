@@ -20,7 +20,7 @@ const AdminAiManagement = ({ user }) => {
 
   const fetchUsage = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/usage-summary`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/usage-summary`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setUsers(res.data);

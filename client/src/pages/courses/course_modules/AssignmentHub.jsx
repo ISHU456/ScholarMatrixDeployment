@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { submitAssignmentForStudent } from '../../../utils/gamificationStore';
 
 const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelectedAssignment, assignments, fetchAssignments, studentSubmissions = [] }) => {
     const [activeTab, setActiveTab] = useState('list'); // 'list' or 'create'
@@ -18,6 +19,8 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
         type: 'pdf',
         dueDate: '',
         totalMarks: 10,
+        xpReward: 50,
+        coinsReward: 10,
         quizQuestions: [
             { question: '', options: ['', '', '', ''], correctAnswer: 0 }
         ]
@@ -33,11 +36,13 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
     // Grading State
     const [gradingData, setGradingData] = useState({ marks: 0, feedback: '' });
 
+    const [editingAssignment, setEditingAssignment] = useState(null);
+
     const handleAiGenerate = async () => {
         if (!newAssignment.title) return alert("Please specify a Protocol Title first for Neural Mapping.");
         setIsGeneratingQuiz(true);
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/generate-quiz`, {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/generate-quiz`, {
                 topic: newAssignment.title,
                 count: 5
             }, {
@@ -55,7 +60,7 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
         e.stopPropagation();
         if (!window.confirm('Permanently eradicate this assignment and all its submissions?')) return;
         try {
-            await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/${asgnId}`, {
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/${asgnId}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             if (selectedAssignment?._id === asgnId) setSelectedAssignment(null);
@@ -63,6 +68,22 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
         } catch (err) {
             alert(err.response?.data?.message || 'Eradication failed.');
         }
+    };
+
+    const handleEditAssignment = (e, asgn) => {
+        e.stopPropagation();
+        setEditingAssignment(asgn);
+        setNewAssignment({
+            title: asgn.title,
+            description: asgn.description,
+            type: asgn.type,
+            dueDate: asgn.dueDate ? new Date(asgn.dueDate).toISOString().slice(0, 16) : '',
+            totalMarks: asgn.totalMarks,
+            xpReward: asgn.xpReward || 50,
+            coinsReward: asgn.coinsReward || 10,
+            quizQuestions: asgn.quizQuestions || [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+        });
+        setActiveTab('create');
     };
 
     const handleCreate = async (e) => {
@@ -87,26 +108,39 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
         if (pdfFile) formData.append('file', pdfFile);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/create`, formData, {
-                headers: { 
-                    Authorization: `Bearer ${user.token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            if (editingAssignment) {
+                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/${editingAssignment._id}`, formData, {
+                    headers: { 
+                        Authorization: `Bearer ${user.token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                alert("Sector Node Recalibrated.");
+            } else {
+                await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/create`, formData, {
+                    headers: { 
+                        Authorization: `Bearer ${user.token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+            }
             setNewAssignment({ 
                 title: '', 
                 description: '', 
                 type: 'pdf', 
                 dueDate: '', 
                 totalMarks: 10, 
+                xpReward: 50,
+                coinsReward: 10,
                 quizQuestions: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }] 
             });
             setPdfFile(null);
+            setEditingAssignment(null);
             fetchAssignments();
             setActiveTab('list');
         } catch (err) {
             console.error("Assignment Sector Deployment Failure:", err.response?.data || err);
-            alert(err.response?.data?.message || "Creation failed: Verification node rejected.");
+            alert(err.response?.data?.message || "Operation failed: Verification node rejected.");
         }
         setIsSubmitting(false);
     };
@@ -129,13 +163,22 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
                       className={`relative p-6 border-2 transition-all group cursor-pointer rounded-3xl ${selectedAssignment?._id === asgn._id ? 'border-primary-500 bg-primary-50/10' : 'bg-white/40 dark:bg-gray-800/20 border-transparent dark:border-gray-800 hover:border-primary-500/30'}`}
                  >
                      {isTeacher && (
-                         <button
-                             onClick={(e) => handleDeleteAssignment(e, asgn._id)}
-                             className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-500 hover:bg-rose-500 hover:text-white shadow-sm z-10"
-                             title="Delete Assignment"
-                         >
-                             <Trash2 size={14}/>
-                         </button>
+                          <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                              <button
+                                  onClick={(e) => handleEditAssignment(e, asgn)}
+                                  className="p-2 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 hover:bg-primary-500 hover:text-white shadow-sm"
+                                  title="Edit Assignment"
+                              >
+                                  <Edit3 size={14}/>
+                              </button>
+                              <button
+                                  onClick={(e) => handleDeleteAssignment(e, asgn._id)}
+                                  className="p-2 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-500 hover:bg-rose-500 hover:text-white shadow-sm"
+                                  title="Delete Assignment"
+                              >
+                                  <Trash2 size={14}/>
+                              </button>
+                          </div>
                      )}
                      <div className="flex justify-between items-start gap-4">
                          <div className="flex gap-4 min-w-0">
@@ -206,7 +249,7 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="space-y-2">
                     <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2">Temporal Deadline</label>
                     <input 
@@ -218,13 +261,33 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2">Reward Cap (Marks)</label>
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2">Marks</label>
                     <input 
                         required
                         type="number"
                         value={newAssignment.totalMarks}
                         onChange={e => setNewAssignment({...newAssignment, totalMarks: e.target.value})}
                         className="w-full bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 rounded-2xl px-5 py-3 text-xs font-bold uppercase outline-none focus:ring-2 ring-primary-500/50" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2">XP Reward</label>
+                    <input 
+                        required
+                        type="number"
+                        value={newAssignment.xpReward}
+                        onChange={e => setNewAssignment({...newAssignment, xpReward: e.target.value})}
+                        className="w-full bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 rounded-2xl px-5 py-3 text-xs font-bold uppercase outline-none focus:ring-2 ring-indigo-500/50" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2">Coins Reward</label>
+                    <input 
+                        required
+                        type="number"
+                        value={newAssignment.coinsReward}
+                        onChange={e => setNewAssignment({...newAssignment, coinsReward: e.target.value})}
+                        className="w-full bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 rounded-2xl px-5 py-3 text-xs font-bold uppercase outline-none focus:ring-2 ring-amber-500/50" 
                     />
                 </div>
             </div>
@@ -346,14 +409,30 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
                 className="w-full py-4 bg-primary-600 text-white rounded-2xl font-semibold text-xs uppercase tracking-[0.3em] hover:bg-primary-700 shadow-xl shadow-primary-500/30 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
                 {isSubmitting ? <Zap className="animate-spin" size={18}/> : <Save size={18}/>}
-                INITIATE SECTOR DEPLOYMENT
+                {editingAssignment ? 'RECALIBRATE SECTOR NODE' : 'INITIATE SECTOR DEPLOYMENT'}
             </button>
+            {editingAssignment && (
+                <button 
+                    type="button" 
+                    onClick={() => {
+                        setEditingAssignment(null);
+                        setNewAssignment({ 
+                            title: '', description: '', type: 'pdf', dueDate: '', totalMarks: 10, xpReward: 50, coinsReward: 10,
+                            quizQuestions: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }] 
+                        });
+                        setActiveTab('list');
+                    }}
+                    className="w-full py-4 border-2 border-gray-100 dark:border-gray-800 text-gray-400 rounded-2xl font-semibold text-xs uppercase tracking-[0.3em] hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all"
+                >
+                    CANCEL RECALIBRATION
+                </button>
+            )}
         </form>
     );
 
     const handleGradeSubmission = async (subId) => {
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/grade/${subId}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/grade/${subId}`, {
                 marks: gradingData.marks,
                 feedback: gradingData.feedback,
                 teacherId: user._id
@@ -379,10 +458,20 @@ const AssignmentHub = ({ courseId, isTeacher, user, selectedAssignment, setSelec
         if (selectedAssignment.type === 'quiz') formData.append('quizAnswers', JSON.stringify(quizAnswers));
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/assignments/submit`, formData, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/assignments/submit`, formData, {
                 headers: { Authorization: `Bearer ${user.token}`, 'Content-Type': 'multipart/form-data' }
             });
             alert("Neural Submission Successful.");
+            
+            // Award rewards locally
+            submitAssignmentForStudent({
+                studentId: user._id,
+                courseId: selectedAssignment.extraCourseId || selectedAssignment.course,
+                assignmentId: selectedAssignment._id,
+                xpReward: selectedAssignment.xpReward || 20,
+                coinsReward: selectedAssignment.coinsReward || 5
+            });
+
             setSubmissionFile(null);
             fetchAssignments();
         } catch (err) {

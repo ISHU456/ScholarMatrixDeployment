@@ -22,7 +22,7 @@ const DepartmentDetail = () => {
   useEffect(() => {
     const fetchDept = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/departments/code/${code}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/departments/code/${code}`);
         setDept(res.data);
       } catch (err) {
         console.error("Failed to fetch department details", err);

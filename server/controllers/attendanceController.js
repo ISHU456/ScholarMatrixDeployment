@@ -18,7 +18,8 @@ export const markBulkAttendance = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const attendanceDate = new Date(date);
+    const d = new Date(date);
+    const attendanceDate = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     const entryWindowExpiresAt = new Date(attendanceDate);
     entryWindowExpiresAt.setUTCDate(entryWindowExpiresAt.getUTCDate() + 7);
 

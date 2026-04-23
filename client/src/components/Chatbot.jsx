@@ -60,7 +60,7 @@ const Chatbot = ({ variant = 'floating', className = '', noAutoScroll = false })
 
     try {
       const subject = getSubjectContext();
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/ask`, { 
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/ask`, { 
         message: input,
         subject: subject,
         history: messages 

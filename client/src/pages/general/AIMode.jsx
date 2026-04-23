@@ -57,7 +57,7 @@ const AIMode = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/auth/profile`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setCredits(res.data.credits);
@@ -76,7 +76,7 @@ const AIMode = () => {
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/history`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/history`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setChatHistory(res.data);
@@ -95,7 +95,7 @@ const AIMode = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/ask`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/ask`, {
         message: input,
         sessionId: sessionId,
         history: messages.map(m => ({ 
@@ -152,7 +152,7 @@ const AIMode = () => {
     formData.append('file', file);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/analyze`, formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/analyze`, formData, {
         headers: { 
           Authorization: `Bearer ${user.token}`,
           'Content-Type': 'multipart/form-data'
@@ -213,7 +213,7 @@ const AIMode = () => {
 
   const requestCredits = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/request-credits`, {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/request-credits`, {}, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setRequestSent(true);
@@ -242,7 +242,7 @@ const AIMode = () => {
   const deleteSession = async (sessionId) => {
     if (!window.confirm("Terminate this neural log indefinitely?")) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/delete/${sessionId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/delete/${sessionId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setChatHistory(prev => prev.filter(s => s.sessionId !== sessionId));
@@ -256,7 +256,7 @@ const AIMode = () => {
     const amount = document.getElementById('creditAmountInp').value || 10;
     if (!email) return;
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com'}/api/chatbot/grant-by-email`, { email, amount }, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/chatbot/grant-by-email`, { email, amount }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       alert(`Credits synchronized for ${email}: Added ${amount} focus bits.`);

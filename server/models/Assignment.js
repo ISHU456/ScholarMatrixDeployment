@@ -21,6 +21,8 @@ const assignmentSchema = new mongoose.Schema({
   
   dueDate: { type: Date, required: true },
   totalMarks: { type: Number, required: true },
+  xpReward: { type: Number, default: 0 },
+  coinsReward: { type: Number, default: 0 },
   
   attachments: [{
     fileName: String,

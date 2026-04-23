@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://scholarmatrixdeployment-server.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 const LiveClass = () => {
   const { classId } = useParams();
@@ -37,6 +37,7 @@ const LiveClass = () => {
   const peerConnections = useRef({}); // Object to store all RTC connections
   const pendingCandidates = useRef({}); // Queue for ICE candidates before description is set
   const chatEndRef = useRef();
+  const joinTime = useRef(Date.now());
 
   const iceServers = {
     iceServers: [
@@ -246,7 +247,34 @@ const LiveClass = () => {
     setTimeout(() => setHandRaised(false), 5000);
   };
 
-  const handleLeave = () => {
+  const handleLeave = async () => {
+    // 1. Calculate time spent
+    const endTime = Date.now();
+    const durationMs = endTime - joinTime.current;
+    const durationMin = Math.floor(durationMs / 60000);
+
+    // 2. Stop camera tracks immediately
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
+    // 3. Award coins (Student only)
+    if (!isTeacher && durationMin > 0) {
+      try {
+        await axios.post(`${API_URL}/api/gamification/live-class-coins`, {
+          minutes: durationMin
+        }, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        alert(`Neural Link Terminated. You earned ${durationMin * 2} Scholar Coins for your participation.`);
+      } catch (err) {
+        console.error("Coin Sync Failure:", err);
+      }
+    }
+
     navigate(-1);
   };
 
