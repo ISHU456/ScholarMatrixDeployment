@@ -11,6 +11,8 @@ import axios from 'axios';
 import CreatePost from '../../components/announcements/CreatePost';
 import AnnouncementFeed from '../../components/announcements/AnnouncementFeed';
 
+import { Link } from 'react-router-dom';
+
 const Announcements = () => {
   const { user } = useSelector((state) => state.auth);
   const [feedVersion, setFeedVersion] = useState(0);
@@ -23,6 +25,14 @@ const Announcements = () => {
   const handlePostCreated = (newPost) => {
     // Socket.io handles feed injection automatically now via HandleNewAnnouncement
   };
+
+  const navItems = [
+    { label: 'Departments', icon: <Users size={18} />, path: '/departments' },
+    { label: 'My Profile', icon: <Star size={18} />, path: '/profile' },
+    { label: 'My Dashboard', icon: <Calendar size={18} />, path: '/dashboard' },
+    { label: 'System Dashboard', icon: <Bell size={18} />, badge: '12', path: '/dashboard' },
+    { label: 'Account Settings', icon: <Settings size={18} />, path: '/profile' },
+  ];
 
   return (
     <div className="min-h-screen lg:h-[calc(100vh-5rem)] overflow-y-auto lg:overflow-hidden bg-[#f8fafc] dark:bg-[#0b0f19] transition-colors duration-500">
@@ -68,14 +78,12 @@ const Announcements = () => {
               <div className="bg-white/40 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 [content-visibility:auto]">
                 <h3 className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400 mb-6 px-2">Navigation</h3>
                 <nav className="space-y-1">
-                  {[
-                    { label: 'My Department', icon: <Users size={18} />, active: false },
-                    { label: 'Saved Posts', icon: <Star size={18} />, active: false },
-                    { label: 'Events Calendar', icon: <Calendar size={18} />, active: false },
-                    { label: 'Notifications', icon: <Bell size={18} />, badge: '12', active: false },
-                    { label: 'Settings', icon: <Settings size={18} />, active: false },
-                  ].map((item, i) => (
-                    <button key={i} className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-white dark:hover:bg-gray-800 transition-all group font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600">
+                  {navItems.map((item, i) => (
+                    <Link 
+                      key={i} 
+                      to={item.path}
+                      className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-white dark:hover:bg-gray-800 transition-all group font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600"
+                    >
                       <div className="flex items-center gap-3">
                         <span className="group-hover:scale-110 transition-transform">{item.icon}</span>
                         <span className="text-sm">{item.label}</span>
@@ -83,7 +91,7 @@ const Announcements = () => {
                       {item.badge && (
                         <span className="bg-primary-600 text-white text-xs px-2 py-0.5 rounded-lg font-semibold">{item.badge}</span>
                       )}
-                    </button>
+                    </Link>
                   ))}
                 </nav>
               </div>
