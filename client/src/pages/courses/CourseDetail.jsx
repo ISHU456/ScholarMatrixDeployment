@@ -85,7 +85,7 @@ const CourseDetail = () => {
         return prev;
     }, { replace: true });
 
-    if (activeSection === 'ai-assistant') {
+    if (activeSection === 'ai-assistant' || activeSection === 'community-chat') {
       document.body.classList.add('ai-assistant-page-active');
     } else {
       document.body.classList.remove('ai-assistant-page-active');
