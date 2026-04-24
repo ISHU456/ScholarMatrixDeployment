@@ -11,12 +11,17 @@ const getApiUrl = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     
-    if (hostname.includes('scholarmatrixdeployment-client.onrender.com')) {
+    // Explicit mapping for known deployments
+    if (hostname.includes('scholarmatrixdeployment')) {
       return 'https://scholarmatrixdeployment-server.onrender.com';
     }
     
+    if (hostname.includes('colabmernscholarnode')) {
+      return 'https://colabmernscholarnodeserver.onrender.com';
+    }
+    
+    // General fallback for other Render subdomains
     if (hostname.includes('onrender.com')) {
-      // General case for other Render names
       return window.location.origin.replace('-client', '-server');
     }
   }
@@ -26,5 +31,10 @@ const getApiUrl = () => {
 };
 
 const API_URL = getApiUrl();
+
+// Immediate assignment to window for sync access in other modules
+if (typeof window !== 'undefined') {
+  window.API_URL = API_URL;
+}
 
 export default API_URL;
